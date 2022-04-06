@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios, { AxiosResponse } from "axios";
 
 import {
   List,
@@ -18,6 +17,7 @@ import {
 import { makeStyles } from "@mui/styles";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import { ApiResponse, Pokemon, SinglePokemonApiResponse } from "./types";
+import { preparePokemons } from "./utils";
 
 const useStyles = makeStyles({
   croppedIcon: {
@@ -50,36 +50,8 @@ export default function CustomizedList() {
   const [pokemons, setPokemons] = useState([] as Pokemon[]);
 
   useEffect(() => {
-    const prepareApiData = async () => {
-      const initialTwentyBasic: ApiResponse = await axios.get(
-        "https://pokeapi.co/api/v2/pokemon"
-      );
-
-      const allOthersBasic: ApiResponse = await axios.get(
-        `https://pokeapi.co/api/v2/pokemon?limit=${
-          initialTwentyBasic.data.count - 20
-        }&offset=20`
-      );
-
-      const initialTwentyDetails: SinglePokemonApiResponse[] =
-        (await Promise.all(
-          initialTwentyBasic.data.results.map((result) =>
-            axios.get<SinglePokemonApiResponse>(result.url)
-          )
-        )) as SinglePokemonApiResponse[];
-
-      setPokemons(initialTwentyDetails.map((a) => a.data));
-
-      const allOthersDetails: SinglePokemonApiResponse[] = (await Promise.all(
-        allOthersBasic.data.results.map((result) =>
-          axios.get<SinglePokemonApiResponse>(result.url)
-        )
-      )) as SinglePokemonApiResponse[];
-
-      setPokemons((prev) => [...prev, ...allOthersDetails.map((a) => a.data)]);
-    };
     if (!apiDataInitialized) {
-      prepareApiData();
+      preparePokemons({ setPokemons: setPokemons });
       setApiDataInitialized(true);
     }
   }, [apiDataInitialized]);
@@ -139,10 +111,7 @@ export default function CustomizedList() {
               </Grid>
             </ListItemButton>
 
-            {[
-              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-              20,
-            ].map((item) => (
+            {pokemons.slice(0, 20).map((pokemon) => (
               <Box
                 sx={{
                   bgcolor: open ? "rgba(71, 98, 130, 0.2)" : null,
@@ -168,7 +137,7 @@ export default function CustomizedList() {
                   </ListItemIcon>
 
                   <ListItemText
-                    primary="Ivysaur"
+                    primary={pokemon.name}
                     primaryTypographyProps={{
                       fontSize: 15,
                       fontWeight: "medium",
