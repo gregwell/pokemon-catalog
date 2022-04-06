@@ -13,8 +13,7 @@ import {
   ListItemIcon,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { KeyboardArrowDown } from "@mui/icons-material";
 
 const useStyles = makeStyles({
   croppedIcon: {
@@ -23,11 +22,6 @@ const useStyles = makeStyles({
     objectFit: "none",
   },
 });
-
-const data = [
-  { label: "Weight", details: false },
-  { label: "Height", details: false },
-];
 
 const FireNav = styled(List)<{ component?: React.ElementType }>({
   "& .MuiListItemButton-root": {
@@ -138,7 +132,7 @@ export default function CustomizedList() {
                 </ListItemButton>
 
                 {open &&
-                  data.map((item) => (
+                  [{ label: "Weight" }, { label: "Height" }].map((item) => (
                     <ListItemButton
                       key={item.label}
                       sx={{
