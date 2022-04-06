@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios, { AxiosResponse } from "axios";
 
 import {
   List,
@@ -11,9 +12,12 @@ import {
   ThemeProvider,
   createTheme,
   ListItemIcon,
+  Grid,
+  Autocomplete,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { KeyboardArrowDown } from "@mui/icons-material";
+import { ApiResponse, Pokemon, SinglePokemonApiResponse } from "./types";
 
 const useStyles = makeStyles({
   croppedIcon: {
@@ -34,8 +38,52 @@ const FireNav = styled(List)<{ component?: React.ElementType }>({
   },
 });
 
+interface Result {
+  name: string;
+  url: string;
+}
+
 export default function CustomizedList() {
   const [open, setOpen] = useState(false);
+
+  const [apiDataInitialized, setApiDataInitialized] = useState<boolean>(false);
+  const [pokemons, setPokemons] = useState([] as Pokemon[]);
+
+  useEffect(() => {
+    const prepareApiData = async () => {
+      const initialTwentyBasic: ApiResponse = await axios.get(
+        "https://pokeapi.co/api/v2/pokemon"
+      );
+
+      const allOthersBasic: ApiResponse = await axios.get(
+        `https://pokeapi.co/api/v2/pokemon?limit=${
+          initialTwentyBasic.data.count - 20
+        }&offset=20`
+      );
+
+      const initialTwentyDetails: SinglePokemonApiResponse[] =
+        (await Promise.all(
+          initialTwentyBasic.data.results.map((result) =>
+            axios.get<SinglePokemonApiResponse>(result.url)
+          )
+        )) as SinglePokemonApiResponse[];
+
+      setPokemons(initialTwentyDetails.map((a) => a.data));
+
+      const allOthersDetails: SinglePokemonApiResponse[] = (await Promise.all(
+        allOthersBasic.data.results.map((result) =>
+          axios.get<SinglePokemonApiResponse>(result.url)
+        )
+      )) as SinglePokemonApiResponse[];
+
+      setPokemons((prev) => [...prev, ...allOthersDetails.map((a) => a.data)]);
+    };
+    if (!apiDataInitialized) {
+      prepareApiData();
+      setApiDataInitialized(true);
+    }
+  }, [apiDataInitialized]);
+
   const classes = useStyles();
   return (
     <Box sx={{ padding: "15px" }}>
@@ -70,16 +118,31 @@ export default function CustomizedList() {
               />
             </ListItemButton>
 
-            <ListItemButton component="a" href="#customized-list">
-              <TextField
-                id="outlined-basic"
-                label="Search for pokemons"
-                variant="outlined"
-                fullWidth
-              />
+            <ListItemButton>
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={9}>
+                  <TextField
+                    id="outlined-basic"
+                    label="Search by name"
+                    variant="outlined"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                  <Autocomplete
+                    options={[1, 2, 3]}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Type" />
+                    )}
+                  />
+                </Grid>
+              </Grid>
             </ListItemButton>
 
-            {[1, 2, 3, 4, 5].map((item) => (
+            {[
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20,
+            ].map((item) => (
               <Box
                 sx={{
                   bgcolor: open ? "rgba(71, 98, 130, 0.2)" : null,
