@@ -39,10 +39,12 @@ export async function preparePokemons({
     )
   )) as SinglePokemonApiResponse[];
 
-  setPokemons((prevState) => [
-    ...prevState,
-    ...detailedInfo.map((a) => a.data),
-  ]);
+  const detailedPokemons = detailedInfo.map((obj) => ({
+    ...obj.data,
+    showDetails: false,
+  }));
+
+  setPokemons((prevState) => [...prevState, ...detailedPokemons]);
 
   if (setSuccess) {
     setSuccess(true);

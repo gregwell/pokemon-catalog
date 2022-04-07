@@ -50,14 +50,7 @@ const FireNav = styled(List)<{ component?: React.ElementType }>({
   },
 });
 
-interface Result {
-  name: string;
-  url: string;
-}
-
 export default function CustomizedList() {
-  const [open, setOpen] = useState(false);
-
   const [apiDataInitialized, setApiDataInitialized] = useState<boolean>(false);
   const [pokemons, setPokemons] = useState([] as Pokemon[]);
   const [count, setCount] = useState<number>(0);
@@ -66,6 +59,8 @@ export default function CustomizedList() {
   const [success, setSuccess] = useState<boolean>(true);
   const [type, setType] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string | null>(null);
+
+  const [currentPokemon, setCurrentPokemon] = useState<string>("");
 
   useEffect(() => {
     const initializeData = async () => {
@@ -98,7 +93,7 @@ export default function CustomizedList() {
 
   const types = getUniqueTypes(pokemons);
 
-  const onTypesOpen = () => {
+  const fetchAll = () => {
     if (offset < count) {
       setSuccess(false);
       preparePokemons({
@@ -158,14 +153,14 @@ export default function CustomizedList() {
                     value={searchText}
                     onChange={(event) => {
                       setSearchText(event.target.value);
-                      onTypesOpen();
+                      fetchAll();
                     }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={3}>
                   <Autocomplete
                     options={types}
-                    onOpen={onTypesOpen}
+                    onOpen={fetchAll}
                     value={type}
                     onChange={(e, val) => {
                       setType(val);
@@ -230,80 +225,98 @@ export default function CustomizedList() {
               </ListItemButton>
             )}
 
-            {filteredPokemons.slice(0, displayMax).map((pokemon) => (
-              <Box
-                sx={{
-                  bgcolor: open ? "rgba(71, 98, 130, 0.2)" : null,
-                  pb: open ? 2 : 0,
-                }}
-              >
-                <ListItemButton
-                  alignItems="flex-start"
-                  onClick={() => setOpen(!open)}
+            {filteredPokemons.slice(0, displayMax).map((pokemon) => {
+              const open = currentPokemon === pokemon.name;
+              return (
+                <Box
                   sx={{
-                    px: 3,
-                    pt: 2.5,
-                    pb: 2.5,
-                    "&:hover, &:focus": { "& svg": { opacity: open ? 1 : 0 } },
+                    bgcolor: open ? "rgba(71, 98, 130, 0.2)" : null,
+                    pb: open ? 2 : 0,
                   }}
                 >
-                  <ListItemIcon>
-                    <img
-                      className={classes.croppedIcon}
-                      src={pokemon.sprites?.front_default}
-                      alt="spirit"
-                    />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary={pokemon.name}
-                    primaryTypographyProps={{
-                      fontSize: 15,
-                      fontWeight: "medium",
-                      lineHeight: "20px",
-                      mb: "2px",
-                    }}
-                    secondary={getTypeLabel(pokemon)}
-                    secondaryTypographyProps={{
-                      noWrap: true,
-                      fontSize: 12,
-                      lineHeight: "16px",
-                      color: "rgba(255,255,255,0.5)",
-                    }}
-                    sx={{ my: 0 }}
-                  />
-
-                  <KeyboardArrowDown
+                  <ListItemButton
+                    alignItems="flex-start"
+                    onClick={() =>
+                      setCurrentPokemon(open ? "" : (pokemon.name as string))
+                    }
                     sx={{
-                      mr: -1,
-                      opacity: 0,
-                      transform: open ? "rotate(-180deg)" : "rotate(0)",
-                      transition: "0.2s",
+                      px: 3,
+                      pt: 2.5,
+                      pb: 2.5,
+                      "&:hover, &:focus": {
+                        "& svg": { opacity: open ? 1 : 0 },
+                      },
                     }}
-                  />
-                </ListItemButton>
-
-                {open &&
-                  [{ label: "Weight" }, { label: "Height" }].map((item) => (
-                    <ListItemButton
-                      key={item.label}
-                      sx={{
-                        py: 0,
-                        minHeight: 32,
-                        color: "rgba(255,255,255,.8)",
-                      }}
-                    >
-                      <ListItemText
-                        primary={item.label}
-                        primaryTypographyProps={{
-                          fontSize: 14,
-                          fontWeight: "medium",
-                        }}
+                  >
+                    <ListItemIcon>
+                      <img
+                        className={classes.croppedIcon}
+                        src={pokemon.sprites?.front_default}
+                        alt="spirit"
                       />
-                    </ListItemButton>
-                  ))}
-              </Box>
-            ))}
+                    </ListItemIcon>
+
+                    <ListItemText
+                      primary={pokemon.name}
+                      primaryTypographyProps={{
+                        fontSize: 15,
+                        fontWeight: "medium",
+                        lineHeight: "20px",
+                        mb: "2px",
+                      }}
+                      secondary={getTypeLabel(pokemon)}
+                      secondaryTypographyProps={{
+                        noWrap: true,
+                        fontSize: 12,
+                        lineHeight: "16px",
+                        color: "rgba(255,255,255,0.5)",
+                      }}
+                      sx={{ my: 0 }}
+                    />
+
+                    <KeyboardArrowDown
+                      sx={{
+                        mr: -1,
+                        opacity: 0,
+                        transform: open ? "rotate(-180deg)" : "rotate(0)",
+                        transition: "0.2s",
+                      }}
+                    />
+                  </ListItemButton>
+
+                  {open &&
+                    [
+                      {
+                        label: pokemon.weight
+                          ? `Weight: ${pokemon.weight / 10} kg`
+                          : "no data",
+                      },
+                      {
+                        label: pokemon.height
+                          ? `Height: ${pokemon.height * 10} cm`
+                          : "no data",
+                      },
+                    ].map((item) => (
+                      <ListItemButton
+                        key={item.label}
+                        sx={{
+                          py: 0,
+                          minHeight: 32,
+                          color: "rgba(255,255,255,.8)",
+                        }}
+                      >
+                        <ListItemText
+                          primary={item.label}
+                          primaryTypographyProps={{
+                            fontSize: 14,
+                            fontWeight: "medium",
+                          }}
+                        />
+                      </ListItemButton>
+                    ))}
+                </Box>
+              );
+            })}
           </FireNav>
           {(filteredPokemons.length > displayMax || offset < count) && (
             <Button onClick={onLoadMore}>LOAD MORE </Button>
