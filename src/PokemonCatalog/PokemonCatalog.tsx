@@ -19,7 +19,7 @@ import { KeyboardArrowDown } from "@mui/icons-material";
 
 import { FetchType, Pokemon } from "./types";
 import {
-  preparePokemons,
+  fetchPokemons,
   getTypeLabel,
   getUniqueTypes,
   filterPokemons,
@@ -32,6 +32,9 @@ const useStyles = makeStyles({
     width: "35px",
     height: "35px",
     objectFit: "none",
+  },
+  root: {
+    textAlign: "center",
   },
 });
 
@@ -50,9 +53,9 @@ export default function PokemonCatalog() {
   const classes = useStyles();
 
   const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
-  const [allDataSuccess, setAllDataSuccess] = useState<boolean>(true);
+  const [allDataLoaded, setAllDataLoaded] = useState<boolean>(true);
 
-  const [pokemons, setPokemons] = useState([] as Pokemon[]);
+  const [pokemons, setPokemons] = useState<Pokemon[]>([] as Pokemon[]);
 
   const [count, setCount] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
@@ -70,54 +73,62 @@ export default function PokemonCatalog() {
 
   useEffect(() => {
     const loadTwentyInitial = async () => {
-      const count = preparePokemons({
-        setPokemons: setPokemons,
+      const { fetchedPokemons, count } = await fetchPokemons({
         fetchType: FetchType.INITIAL,
       });
 
-      setCount(await count);
+      setPokemons(fetchedPokemons);
+      setCount(count);
       setOffset(20);
     };
 
     if (!initialDataLoaded) {
       loadTwentyInitial();
+
       setInitialDataLoaded(true);
     }
   }, [initialDataLoaded]);
 
-  const loadTwentyMore = () => {
-    if (offset < count) {
-      preparePokemons({
-        setPokemons: setPokemons,
-        fetchType: FetchType.MORE,
-        offset: offset,
-      });
+  const loadTwentyMore = async () => {
+    if (offset >= count) {
+      return;
     }
 
+    const { fetchedPokemons } = await fetchPokemons({
+      fetchType: FetchType.MORE,
+      offset: offset,
+    });
+
+    setPokemons([...pokemons, ...fetchedPokemons]);
     setOffset((prev: number) => prev + 20);
     setDisplayLimit((prev: number) => prev + 20);
   };
 
-  const loadAll = () => {
+  const loadAll = async () => {
     if (offset < count) {
-      setAllDataSuccess(false);
-      preparePokemons({
-        setPokemons: setPokemons,
+      setAllDataLoaded(false);
+
+      const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.ALL,
         offset: offset,
         count: count,
-        setSuccess: setAllDataSuccess,
+        setSuccess: setAllDataLoaded,
       });
+
+      setPokemons([...pokemons, ...fetchedPokemons]);
     }
     setOffset(count);
   };
 
   return (
-    <Box sx={{ padding: "15px" }}>
+    <Box className={classes.root} sx={{ padding: "15px" }}>
       <Theme>
         <Paper elevation={0} sx={{ maxWidth: 800, margin: "0 auto" }}>
           <FireNav component="nav" disablePadding>
-            <ListItemButton component="a" href="#customized-list">
+            <ListItemButton
+              component="a"
+              href="https://github.com/gregwell/pokemon-catalog"
+            >
               <ListItemText
                 sx={{ my: 0 }}
                 primary="Pocket Pokemon Catalog 🔥"
@@ -157,8 +168,8 @@ export default function PokemonCatalog() {
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        disabled={!allDataSuccess}
-                        label={allDataSuccess ? "Type" : "loading all types..."}
+                        disabled={!allDataLoaded}
+                        label={allDataLoaded ? "Type" : "loading all types..."}
                       />
                     )}
                   />
@@ -272,10 +283,12 @@ export default function PokemonCatalog() {
           </FireNav>
 
           {(filteredPokemons.length > displayLimit || offset < count) && (
-            <Button onClick={loadTwentyMore}>LOAD MORE </Button>
+            <Button onClick={loadTwentyMore}>
+              {"load more".toUpperCase()}{" "}
+            </Button>
           )}
 
-          {!allDataSuccess && <CircularProgress />}
+          {!allDataLoaded && <CircularProgress />}
         </Paper>
       </Theme>
     </Box>

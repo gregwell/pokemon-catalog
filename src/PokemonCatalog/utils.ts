@@ -7,20 +7,18 @@ import {
 } from "./types";
 
 interface PreparePokemonsProps {
-  setPokemons: React.Dispatch<React.SetStateAction<Pokemon[]>>;
   fetchType: FetchType;
   offset?: number;
   count?: number;
   setSuccess?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export async function preparePokemons({
-  setPokemons,
+export async function fetchPokemons({
   fetchType,
   offset,
   count,
   setSuccess,
-}: PreparePokemonsProps): Promise<number> {
+}: PreparePokemonsProps): Promise<{ fetchedPokemons: Pokemon[]; count: number }> {
   let url = "https://pokeapi.co/api/v2/pokemon";
 
   if (fetchType === FetchType.MORE || fetchType === FetchType.ALL) {
@@ -44,13 +42,11 @@ export async function preparePokemons({
     showDetails: false,
   }));
 
-  setPokemons((prevState) => [...prevState, ...detailedPokemons]);
-
   if (setSuccess) {
     setSuccess(true);
   }
 
-  return basicInfo.data.count;
+  return { fetchedPokemons: detailedPokemons, count: basicInfo.data.count };
 }
 
 export const getTypeLabel = (pokemon: Pokemon): string => {
