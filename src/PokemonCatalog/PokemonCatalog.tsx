@@ -8,18 +8,14 @@ import {
   Paper,
   Box,
   styled,
-  ThemeProvider,
-  createTheme,
   ListItemIcon,
   Grid,
   Autocomplete,
   CircularProgress,
   Button,
-  Alert,
-  IconButton,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { KeyboardArrowDown, Close } from "@mui/icons-material";
+import { KeyboardArrowDown } from "@mui/icons-material";
 
 import { FetchType, Pokemon } from "./types";
 import {
@@ -28,6 +24,8 @@ import {
   getUniqueTypes,
   filterPokemons,
 } from "./utils";
+import { Filters } from "./Filters";
+import { Theme } from "./Theme";
 
 const useStyles = makeStyles({
   croppedIcon: {
@@ -71,7 +69,7 @@ export default function PokemonCatalog() {
   const filteredPokemons = filterPokemons(type, searchPhrase, pokemons);
 
   useEffect(() => {
-    const loadTwentyInitialPokemons = async () => {
+    const loadTwentyInitial = async () => {
       const count = preparePokemons({
         setPokemons: setPokemons,
         fetchType: FetchType.INITIAL,
@@ -82,7 +80,7 @@ export default function PokemonCatalog() {
     };
 
     if (!initialDataLoaded) {
-      loadTwentyInitialPokemons();
+      loadTwentyInitial();
       setInitialDataLoaded(true);
     }
   }, [initialDataLoaded]);
@@ -116,22 +114,7 @@ export default function PokemonCatalog() {
 
   return (
     <Box sx={{ padding: "15px" }}>
-      <ThemeProvider
-        theme={createTheme({
-          components: {
-            MuiListItemButton: {
-              defaultProps: {
-                disableTouchRipple: true,
-              },
-            },
-          },
-          palette: {
-            mode: "dark",
-            primary: { main: "rgb(102, 157, 246)" },
-            background: { paper: "rgb(5, 30, 52)" },
-          },
-        })}
-      >
+      <Theme>
         <Paper elevation={0} sx={{ maxWidth: 800, margin: "0 auto" }}>
           <FireNav component="nav" disablePadding>
             <ListItemButton component="a" href="#customized-list">
@@ -184,50 +167,12 @@ export default function PokemonCatalog() {
             </ListItemButton>
 
             {filteredPokemons.length !== pokemons.length && (
-              <ListItemButton>
-                <Grid container spacing={1}>
-                  <Grid item>
-                    {type && (
-                      <Alert
-                        icon={false}
-                        severity="info"
-                        action={
-                          <IconButton
-                            aria-label="close"
-                            color="inherit"
-                            size="small"
-                            onClick={() => {
-                              setType(null);
-                            }}
-                          >
-                            <Close fontSize="inherit" />
-                          </IconButton>
-                        }
-                      >{`type: ${type}`}</Alert>
-                    )}
-                  </Grid>
-                  <Grid item>
-                    {searchPhrase && searchPhrase !== "" && (
-                      <Alert
-                        icon={false}
-                        severity="info"
-                        action={
-                          <IconButton
-                            aria-label="close"
-                            color="inherit"
-                            size="small"
-                            onClick={() => {
-                              setSearchPhrase("");
-                            }}
-                          >
-                            <Close fontSize="inherit" />
-                          </IconButton>
-                        }
-                      >{`name contain: ${searchPhrase}`}</Alert>
-                    )}
-                  </Grid>
-                </Grid>
-              </ListItemButton>
+              <Filters
+                searchPhrase={searchPhrase}
+                setSearchPhrase={setSearchPhrase}
+                type={type}
+                setType={setType}
+              />
             )}
 
             {filteredPokemons.slice(0, displayLimit).map((pokemon) => {
@@ -325,12 +270,14 @@ export default function PokemonCatalog() {
               );
             })}
           </FireNav>
+
           {(filteredPokemons.length > displayLimit || offset < count) && (
             <Button onClick={loadTwentyMore}>LOAD MORE </Button>
           )}
+
           {!allDataSuccess && <CircularProgress />}
         </Paper>
-      </ThemeProvider>
+      </Theme>
     </Box>
   );
 }

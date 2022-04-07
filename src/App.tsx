@@ -1,12 +1,7 @@
-import "./App.css";
-import PokemonCatalog from "./PokemonCatalog";
+import PokemonCatalog from "./PokemonCatalog/PokemonCatalog";
 
 function App() {
-  return (
-    <div className="App">
-      <PokemonCatalog />
-    </div>
-  );
+  return <PokemonCatalog />;
 }
 
 export default App;
