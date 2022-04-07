@@ -13,11 +13,20 @@ import {
   ListItemIcon,
   Grid,
   Autocomplete,
+  CircularProgress,
+  Button,
+  Alert,
+  IconButton,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { KeyboardArrowDown } from "@mui/icons-material";
-import { ApiResponse, Pokemon, SinglePokemonApiResponse } from "./types";
-import { preparePokemons } from "./utils";
+import { KeyboardArrowDown, Close } from "@mui/icons-material";
+import { FetchType, Pokemon } from "./types";
+import {
+  preparePokemons,
+  getTypeLabel,
+  getUniqueTypes,
+  filterPokemons,
+} from "./utils";
 
 const useStyles = makeStyles({
   croppedIcon: {
@@ -48,15 +57,64 @@ export default function CustomizedList() {
 
   const [apiDataInitialized, setApiDataInitialized] = useState<boolean>(false);
   const [pokemons, setPokemons] = useState([] as Pokemon[]);
+  const [count, setCount] = useState<number>(0);
+  const [offset, setOffset] = useState<number>(0);
+  const [showProgress, setShowProgress] = useState<boolean>(true);
+  const [displayMax, setDisplayMax] = useState<number>(20);
+  const [success, setSuccess] = useState<boolean>(true);
+  const [type, setType] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState<string | null>(null);
 
   useEffect(() => {
+    const initializeData = async () => {
+      const count = preparePokemons({
+        setPokemons: setPokemons,
+        fetchType: FetchType.INITIAL,
+      });
+      setCount(await count);
+      setOffset(20);
+    };
     if (!apiDataInitialized) {
-      preparePokemons({ setPokemons: setPokemons });
+      initializeData();
       setApiDataInitialized(true);
+      setShowProgress(false);
     }
   }, [apiDataInitialized]);
 
   const classes = useStyles();
+
+  const onLoadMore = () => {
+    setShowProgress(true);
+    if (offset < count) {
+      preparePokemons({
+        setPokemons: setPokemons,
+        fetchType: FetchType.MORE,
+        offset: offset,
+      });
+    }
+    setOffset((prev: number) => prev + 20);
+    setDisplayMax((prev: number) => prev + 20);
+    setShowProgress(false);
+  };
+
+  const types = getUniqueTypes(pokemons);
+
+  const onTypesOpen = () => {
+    if (offset < count) {
+      setSuccess(false);
+      preparePokemons({
+        setPokemons: setPokemons,
+        fetchType: FetchType.ALL,
+        offset: offset,
+        count: count,
+        setSuccess: setSuccess,
+      });
+    }
+    setOffset(count);
+  };
+
+  const filteredPokemons = filterPokemons(type, searchText, pokemons);
+
   return (
     <Box sx={{ padding: "15px" }}>
       <ThemeProvider
@@ -75,7 +133,7 @@ export default function CustomizedList() {
           },
         })}
       >
-        <Paper elevation={0} sx={{ maxWidth: 1024, margin: "0 auto" }}>
+        <Paper elevation={0} sx={{ maxWidth: 800, margin: "0 auto" }}>
           <FireNav component="nav" disablePadding>
             <ListItemButton component="a" href="#customized-list">
               <ListItemText
@@ -98,20 +156,81 @@ export default function CustomizedList() {
                     label="Search by name"
                     variant="outlined"
                     fullWidth
+                    value={searchText}
+                    onChange={(event) => {
+                      setSearchText(event.target.value);
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={3}>
                   <Autocomplete
-                    options={[1, 2, 3]}
+                    options={types}
+                    onOpen={onTypesOpen}
+                    value={type}
+                    onChange={(e, val) => {
+                      setType(val);
+                      setDisplayMax(20);
+                    }}
                     renderInput={(params) => (
-                      <TextField {...params} label="Type" />
+                      <TextField
+                        {...params}
+                        disabled={!success}
+                        label={success ? "Type" : "loading all types..."}
+                      />
                     )}
                   />
                 </Grid>
               </Grid>
             </ListItemButton>
 
-            {pokemons.slice(0, 20).map((pokemon) => (
+            {filteredPokemons.length !== pokemons.length && (
+              <ListItemButton>
+                <Grid container spacing={1}>
+                  <Grid item>
+                    {type && (
+                      <Alert
+                        icon={false}
+                        severity="info"
+                        action={
+                          <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                              setType(null);
+                            }}
+                          >
+                            <Close fontSize="inherit" />
+                          </IconButton>
+                        }
+                      >{`type: ${type}`}</Alert>
+                    )}
+                  </Grid>
+                  <Grid item>
+                    {searchText && searchText !== "" && (
+                      <Alert
+                        icon={false}
+                        severity="info"
+                        action={
+                          <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                              setSearchText("");
+                            }}
+                          >
+                            <Close fontSize="inherit" />
+                          </IconButton>
+                        }
+                      >{`name contain: ${searchText}`}</Alert>
+                    )}
+                  </Grid>
+                </Grid>
+              </ListItemButton>
+            )}
+
+            {filteredPokemons.slice(0, displayMax).map((pokemon) => (
               <Box
                 sx={{
                   bgcolor: open ? "rgba(71, 98, 130, 0.2)" : null,
@@ -131,7 +250,7 @@ export default function CustomizedList() {
                   <ListItemIcon>
                     <img
                       className={classes.croppedIcon}
-                      src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/1.png"
+                      src={pokemon.sprites?.front_default}
                       alt="spirit"
                     />
                   </ListItemIcon>
@@ -144,7 +263,7 @@ export default function CustomizedList() {
                       lineHeight: "20px",
                       mb: "2px",
                     }}
-                    secondary="RandomType"
+                    secondary={getTypeLabel(pokemon)}
                     secondaryTypographyProps={{
                       noWrap: true,
                       fontSize: 12,
@@ -153,6 +272,7 @@ export default function CustomizedList() {
                     }}
                     sx={{ my: 0 }}
                   />
+
                   <KeyboardArrowDown
                     sx={{
                       mr: -1,
@@ -185,6 +305,13 @@ export default function CustomizedList() {
               </Box>
             ))}
           </FireNav>
+          {showProgress ? (
+            <CircularProgress />
+          ) : (
+            filteredPokemons.length > displayMax && (
+              <Button onClick={onLoadMore}>LOAD MORE </Button>
+            )
+          )}
         </Paper>
       </ThemeProvider>
     </Box>

@@ -5,10 +5,14 @@ export interface Pokemon {
   };
   types?: {
     0: {
-      type: string;
+      type: {
+        name: string;
+      };
     };
-    1: {
-      type: string;
+    1?: {
+      type: {
+        name: string;
+      };
     };
   };
   weight?: number;
@@ -31,4 +35,10 @@ export interface ApiResponse {
 
 export interface SinglePokemonApiResponse {
   data: Pokemon;
+}
+
+export enum FetchType {
+  INITIAL,
+  MORE,
+  ALL,
 }

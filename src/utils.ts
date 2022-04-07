@@ -1,41 +1,115 @@
 import axios from "axios";
-import { ApiResponse, Pokemon, SinglePokemonApiResponse } from "./types";
+import {
+  ApiResponse,
+  FetchType,
+  Pokemon,
+  SinglePokemonApiResponse,
+} from "./types";
 
 interface PreparePokemonsProps {
   setPokemons: React.Dispatch<React.SetStateAction<Pokemon[]>>;
+  fetchType: FetchType;
+  offset?: number;
+  count?: number;
+  setSuccess?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const preparePokemons = async ({
+export async function preparePokemons({
   setPokemons,
-}: PreparePokemonsProps) => {
-  const initialTwentyBasic: ApiResponse = await axios.get(
-    "https://pokeapi.co/api/v2/pokemon"
-  );
+  fetchType,
+  offset,
+  count,
+  setSuccess,
+}: PreparePokemonsProps): Promise<number> {
+  let url = "https://pokeapi.co/api/v2/pokemon";
 
-  const allOthersBasic: ApiResponse = await axios.get(
-    `https://pokeapi.co/api/v2/pokemon?limit=${
-      initialTwentyBasic.data.count - 20
-    }&offset=20`
-  );
+  if (fetchType === FetchType.MORE || fetchType === FetchType.ALL) {
+    url = `${url}?offset=${offset}`;
+  }
 
-  const initialTwentyDetails: SinglePokemonApiResponse[] = (await Promise.all(
-    initialTwentyBasic.data.results.map((result) =>
-      axios.get<SinglePokemonApiResponse>(result.url)
-    )
-  )) as SinglePokemonApiResponse[];
+  if (fetchType === FetchType.ALL && count && offset) {
+    url = `${url}&limit=${count - offset}`;
+  }
 
-  console.log(initialTwentyDetails.map((a) => a.data));
+  const basicInfo: ApiResponse = await axios.get(url);
 
-  setPokemons(initialTwentyDetails.map((a) => a.data));
-
-  const allOthersDetails: SinglePokemonApiResponse[] = (await Promise.all(
-    allOthersBasic.data.results.map((result) =>
+  const detailedInfo: SinglePokemonApiResponse[] = (await Promise.all(
+    basicInfo.data.results.map((result) =>
       axios.get<SinglePokemonApiResponse>(result.url)
     )
   )) as SinglePokemonApiResponse[];
 
   setPokemons((prevState) => [
     ...prevState,
-    ...allOthersDetails.map((a) => a.data),
+    ...detailedInfo.map((a) => a.data),
   ]);
+
+  if (setSuccess) {
+    setSuccess(true);
+  }
+
+  return basicInfo.data.count;
+}
+
+export const getTypeLabel = (pokemon: Pokemon): string => {
+  const firstType = pokemon.types?.[0].type.name;
+  const secondType = pokemon.types?.[1]?.type.name;
+
+  if (!firstType) {
+    return "";
+  }
+
+  let label = firstType;
+
+  if (secondType) {
+    label = `${label}, ${secondType}`;
+  }
+
+  return label;
+};
+
+export const getUniqueTypes = (pokemons: Pokemon[]): string[] => {
+  const mergedTypes = pokemons
+    .map((pokemon) => {
+      const firstType = pokemon.types?.[0].type.name;
+      const secondType = pokemon.types?.[1]?.type.name;
+
+      if (!firstType) {
+        return [];
+      }
+
+      if (secondType) {
+        return [firstType, secondType];
+      }
+      return firstType;
+    })
+    .flat();
+
+  return Array.from(new Set(mergedTypes));
+};
+
+export const filterPokemons = (
+  type: string | null,
+  searchPhrase: string | null,
+  pokemons: Pokemon[]
+): Pokemon[] => {
+  let filteredByType = [] as Pokemon[];
+
+  if (type) {
+    filteredByType = pokemons.filter(
+      (pokemon) =>
+        pokemon.types?.[0].type.name === type ||
+        pokemon.types?.[1]?.type.name === type
+    );
+  }
+
+  if (!searchPhrase || searchPhrase === "") {
+    return type ? filteredByType : pokemons;
+  }
+
+  const pokemonsToFilterByName = type ? filteredByType : pokemons;
+
+  return pokemonsToFilterByName.filter((pokemon) =>
+    pokemon.name?.includes(searchPhrase)
+  );
 };
