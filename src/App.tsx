@@ -1,10 +1,10 @@
 import "./App.css";
-import CustomizedList from "./CustomizedList";
+import PokemonCatalog from "./PokemonCatalog";
 
 function App() {
   return (
     <div className="App">
-      <CustomizedList />
+      <PokemonCatalog />
     </div>
   );
 }

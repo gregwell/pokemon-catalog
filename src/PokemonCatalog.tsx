@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { KeyboardArrowDown, Close } from "@mui/icons-material";
+
 import { FetchType, Pokemon } from "./types";
 import {
   preparePokemons,
@@ -36,9 +37,6 @@ const useStyles = makeStyles({
   },
 });
 
-//todo: load all results when search
-//todo: extend the tab only for one single pokemon
-
 const FireNav = styled(List)<{ component?: React.ElementType }>({
   "& .MuiListItemButton-root": {
     paddingLeft: 24,
@@ -50,36 +48,46 @@ const FireNav = styled(List)<{ component?: React.ElementType }>({
   },
 });
 
-export default function CustomizedList() {
-  const [apiDataInitialized, setApiDataInitialized] = useState<boolean>(false);
+export default function PokemonCatalog() {
+  const classes = useStyles();
+
+  const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
+  const [allDataSuccess, setAllDataSuccess] = useState<boolean>(true);
+
   const [pokemons, setPokemons] = useState([] as Pokemon[]);
+
   const [count, setCount] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
-  const [displayMax, setDisplayMax] = useState<number>(20);
-  const [success, setSuccess] = useState<boolean>(true);
-  const [type, setType] = useState<string | null>(null);
-  const [searchText, setSearchText] = useState<string | null>(null);
+  const [displayLimit, setDisplayLimit] = useState<number>(20);
 
-  const [currentPokemon, setCurrentPokemon] = useState<string>("");
+  const [searchPhrase, setSearchPhrase] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
+
+  const [focusedPokemonName, setFocusedPokemonName] = useState<string | null>(
+    null
+  );
+
+  const types = getUniqueTypes(pokemons);
+  const filteredPokemons = filterPokemons(type, searchPhrase, pokemons);
 
   useEffect(() => {
-    const initializeData = async () => {
+    const loadTwentyInitialPokemons = async () => {
       const count = preparePokemons({
         setPokemons: setPokemons,
         fetchType: FetchType.INITIAL,
       });
+
       setCount(await count);
       setOffset(20);
     };
-    if (!apiDataInitialized) {
-      initializeData();
-      setApiDataInitialized(true);
+
+    if (!initialDataLoaded) {
+      loadTwentyInitialPokemons();
+      setInitialDataLoaded(true);
     }
-  }, [apiDataInitialized]);
+  }, [initialDataLoaded]);
 
-  const classes = useStyles();
-
-  const onLoadMore = () => {
+  const loadTwentyMore = () => {
     if (offset < count) {
       preparePokemons({
         setPokemons: setPokemons,
@@ -87,27 +95,24 @@ export default function CustomizedList() {
         offset: offset,
       });
     }
+
     setOffset((prev: number) => prev + 20);
-    setDisplayMax((prev: number) => prev + 20);
+    setDisplayLimit((prev: number) => prev + 20);
   };
 
-  const types = getUniqueTypes(pokemons);
-
-  const fetchAll = () => {
+  const loadAll = () => {
     if (offset < count) {
-      setSuccess(false);
+      setAllDataSuccess(false);
       preparePokemons({
         setPokemons: setPokemons,
         fetchType: FetchType.ALL,
         offset: offset,
         count: count,
-        setSuccess: setSuccess,
+        setSuccess: setAllDataSuccess,
       });
     }
     setOffset(count);
   };
-
-  const filteredPokemons = filterPokemons(type, searchText, pokemons);
 
   return (
     <Box sx={{ padding: "15px" }}>
@@ -150,27 +155,27 @@ export default function CustomizedList() {
                     label="Search by name"
                     variant="outlined"
                     fullWidth
-                    value={searchText}
+                    value={searchPhrase}
                     onChange={(event) => {
-                      setSearchText(event.target.value);
-                      fetchAll();
+                      setSearchPhrase(event.target.value.toLowerCase());
+                      loadAll();
                     }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={3}>
                   <Autocomplete
                     options={types}
-                    onOpen={fetchAll}
+                    onOpen={loadAll}
                     value={type}
                     onChange={(e, val) => {
                       setType(val);
-                      setDisplayMax(20);
+                      setDisplayLimit(20);
                     }}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        disabled={!success}
-                        label={success ? "Type" : "loading all types..."}
+                        disabled={!allDataSuccess}
+                        label={allDataSuccess ? "Type" : "loading all types..."}
                       />
                     )}
                   />
@@ -202,7 +207,7 @@ export default function CustomizedList() {
                     )}
                   </Grid>
                   <Grid item>
-                    {searchText && searchText !== "" && (
+                    {searchPhrase && searchPhrase !== "" && (
                       <Alert
                         icon={false}
                         severity="info"
@@ -212,21 +217,21 @@ export default function CustomizedList() {
                             color="inherit"
                             size="small"
                             onClick={() => {
-                              setSearchText("");
+                              setSearchPhrase("");
                             }}
                           >
                             <Close fontSize="inherit" />
                           </IconButton>
                         }
-                      >{`name contain: ${searchText}`}</Alert>
+                      >{`name contain: ${searchPhrase}`}</Alert>
                     )}
                   </Grid>
                 </Grid>
               </ListItemButton>
             )}
 
-            {filteredPokemons.slice(0, displayMax).map((pokemon) => {
-              const open = currentPokemon === pokemon.name;
+            {filteredPokemons.slice(0, displayLimit).map((pokemon) => {
+              const open = focusedPokemonName === pokemon.name;
               return (
                 <Box
                   sx={{
@@ -237,7 +242,9 @@ export default function CustomizedList() {
                   <ListItemButton
                     alignItems="flex-start"
                     onClick={() =>
-                      setCurrentPokemon(open ? "" : (pokemon.name as string))
+                      setFocusedPokemonName(
+                        open ? null : (pokemon.name as string)
+                      )
                     }
                     sx={{
                       px: 3,
@@ -318,10 +325,10 @@ export default function CustomizedList() {
               );
             })}
           </FireNav>
-          {(filteredPokemons.length > displayMax || offset < count) && (
-            <Button onClick={onLoadMore}>LOAD MORE </Button>
+          {(filteredPokemons.length > displayLimit || offset < count) && (
+            <Button onClick={loadTwentyMore}>LOAD MORE </Button>
           )}
-          {!success && <CircularProgress />}
+          {!allDataSuccess && <CircularProgress />}
         </Paper>
       </ThemeProvider>
     </Box>
