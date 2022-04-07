@@ -36,6 +36,9 @@ const useStyles = makeStyles({
   },
 });
 
+//todo: load all results when search
+//todo: extend the tab only for one single pokemon
+
 const FireNav = styled(List)<{ component?: React.ElementType }>({
   "& .MuiListItemButton-root": {
     paddingLeft: 24,
@@ -59,7 +62,6 @@ export default function CustomizedList() {
   const [pokemons, setPokemons] = useState([] as Pokemon[]);
   const [count, setCount] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
-  const [showProgress, setShowProgress] = useState<boolean>(true);
   const [displayMax, setDisplayMax] = useState<number>(20);
   const [success, setSuccess] = useState<boolean>(true);
   const [type, setType] = useState<string | null>(null);
@@ -77,14 +79,12 @@ export default function CustomizedList() {
     if (!apiDataInitialized) {
       initializeData();
       setApiDataInitialized(true);
-      setShowProgress(false);
     }
   }, [apiDataInitialized]);
 
   const classes = useStyles();
 
   const onLoadMore = () => {
-    setShowProgress(true);
     if (offset < count) {
       preparePokemons({
         setPokemons: setPokemons,
@@ -94,7 +94,6 @@ export default function CustomizedList() {
     }
     setOffset((prev: number) => prev + 20);
     setDisplayMax((prev: number) => prev + 20);
-    setShowProgress(false);
   };
 
   const types = getUniqueTypes(pokemons);
@@ -138,7 +137,7 @@ export default function CustomizedList() {
             <ListItemButton component="a" href="#customized-list">
               <ListItemText
                 sx={{ my: 0 }}
-                primary="Pokemon Catalog 🔥"
+                primary="Pocket Pokemon Catalog 🔥"
                 primaryTypographyProps={{
                   fontSize: 20,
                   fontWeight: "medium",
@@ -159,6 +158,7 @@ export default function CustomizedList() {
                     value={searchText}
                     onChange={(event) => {
                       setSearchText(event.target.value);
+                      onTypesOpen();
                     }}
                   />
                 </Grid>
@@ -305,13 +305,10 @@ export default function CustomizedList() {
               </Box>
             ))}
           </FireNav>
-          {showProgress ? (
-            <CircularProgress />
-          ) : (
-            filteredPokemons.length > displayMax && (
-              <Button onClick={onLoadMore}>LOAD MORE </Button>
-            )
+          {(filteredPokemons.length > displayMax || offset < count) && (
+            <Button onClick={onLoadMore}>LOAD MORE </Button>
           )}
+          {!success && <CircularProgress />}
         </Paper>
       </ThemeProvider>
     </Box>
