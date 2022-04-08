@@ -41,8 +41,6 @@ export default function PokemonCatalog() {
       pokemonData.offset < pokemonData.count) &&
     !isLoading;
 
-  const showCircularProgress = isLoading;
-
   const loadMoreButtonText = "load more".toUpperCase();
 
   useEffect(() => {
@@ -151,7 +149,7 @@ export default function PokemonCatalog() {
         <Button onClick={loadTwentyMore}>{loadMoreButtonText}</Button>
       )}
 
-      {showCircularProgress && <CircularProgress />}
+      {isLoading && <CircularProgress />}
     </StyledContainer>
   );
 }
