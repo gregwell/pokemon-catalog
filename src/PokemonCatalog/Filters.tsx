@@ -11,7 +11,7 @@ interface FiltersProps {
 
 export const Filters = ({ input, setInput }: FiltersProps) => {
   const typeLabel = `type: ${input.type}`;
-  const phraseLabel = `name contain: ${input.phrase}`;
+  const phraseLabel = `name contains: ${input.phrase}`;
 
   const onClose = useCallback(
     (input: string) => {
