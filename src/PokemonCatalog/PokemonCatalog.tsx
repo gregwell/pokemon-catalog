@@ -11,7 +11,7 @@ import {
   Button,
 } from "@mui/material";
 
-import { FetchType, Pokemon } from "./types";
+import { FetchType, Pokemon, PokemonData } from "./types";
 import { fetchPokemons, getUniqueTypes, filterPokemons } from "./utils";
 import { Filters } from "./Filters";
 import { Theme } from "./Theme";
@@ -25,16 +25,22 @@ export default function PokemonCatalog() {
   const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
   const [allDataLoaded, setAllDataLoaded] = useState<boolean>(true);
 
-  const [pokemons, setPokemons] = useState<Pokemon[]>([] as Pokemon[]);
-  const [count, setCount] = useState<number>(0);
-  const [offset, setOffset] = useState<number>(0);
-  const [displayLimit, setDisplayLimit] = useState<number>(20);
+  const [pokemonData, setPokemonData] = useState<PokemonData>({
+    pokemons: [] as Pokemon[],
+    count: 0,
+    offset: 0,
+    displayLimit: 20,
+  });
 
   const [searchPhrase, setSearchPhrase] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
 
-  const types = getUniqueTypes(pokemons);
-  const filteredPokemons = filterPokemons(type, searchPhrase, pokemons);
+  const types = getUniqueTypes(pokemonData.pokemons);
+  const filteredPokemons = filterPokemons(
+    type,
+    searchPhrase,
+    pokemonData.pokemons
+  );
 
   useEffect(() => {
     const loadTwentyInitial = async () => {
@@ -42,9 +48,14 @@ export default function PokemonCatalog() {
         fetchType: FetchType.INITIAL,
       });
 
-      setPokemons(fetchedPokemons);
-      setCount(count);
-      setOffset(20);
+      setPokemonData((prev: PokemonData) => {
+        return {
+          ...prev,
+          pokemons: fetchedPokemons,
+          count: count,
+          offset: 20,
+        };
+      });
     };
 
     if (!initialDataLoaded) {
@@ -52,41 +63,57 @@ export default function PokemonCatalog() {
 
       setInitialDataLoaded(true);
     }
-  }, [initialDataLoaded]);
+  }, [initialDataLoaded, pokemonData]);
 
   const loadTwentyMore = async () => {
-    if (offset < count) {
+    if (pokemonData.offset < pokemonData.count) {
       const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.MORE,
-        offset: offset,
+        offset: pokemonData.offset,
       });
-      console.log(fetchedPokemons);
-      setPokemons([...pokemons, ...fetchedPokemons]);
+
+      setPokemonData((prev: PokemonData) => {
+        return {
+          ...prev,
+          pokemons: [...prev.pokemons, ...fetchedPokemons],
+        };
+      });
     }
 
-    console.log(pokemons);
-    console.log(offset);
-    console.log(displayLimit);
-    console.log(count);
-
-    setOffset((prev: number) => prev + 20);
-    setDisplayLimit((prev: number) => prev + 20);
+    setPokemonData((prev: PokemonData) => {
+      return {
+        ...prev,
+        offset: prev.offset + 20,
+        displayLimit: prev.displayLimit + 20,
+      };
+    });
   };
 
   const loadAll = async () => {
-    if (offset < count) {
+    if (pokemonData.offset < pokemonData.count) {
       setAllDataLoaded(false);
 
       const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.ALL,
-        offset: offset,
-        count: count,
+        offset: pokemonData.offset,
+        count: pokemonData.count,
         setSuccess: setAllDataLoaded,
       });
 
-      setPokemons([...pokemons, ...fetchedPokemons]);
+      setPokemonData((prev: PokemonData) => {
+        return {
+          ...prev,
+          pokemons: [...prev.pokemons, ...fetchedPokemons],
+        };
+      });
     }
-    setOffset(count);
+
+    setPokemonData((prev: PokemonData) => {
+      return {
+        ...prev,
+        offset: prev.count,
+      };
+    });
   };
 
   return (
@@ -106,7 +133,12 @@ export default function PokemonCatalog() {
                   value={searchPhrase}
                   onChange={(event) => {
                     setSearchPhrase(event.target.value.toLowerCase());
-                    setDisplayLimit(20);
+                    setPokemonData((prev: PokemonData) => {
+                      return {
+                        ...prev,
+                        displayLimit: 20,
+                      };
+                    });
                     loadAll();
                   }}
                 />
@@ -119,7 +151,12 @@ export default function PokemonCatalog() {
                   value={type}
                   onChange={(e, val) => {
                     setType(val);
-                    setDisplayLimit(20);
+                    setPokemonData((prev: PokemonData) => {
+                      return {
+                        ...prev,
+                        displayLimit: 20,
+                      };
+                    });
                   }}
                   renderInput={(params) => (
                     <TextField
@@ -133,7 +170,7 @@ export default function PokemonCatalog() {
             </Grid>
           </ListItemButton>
 
-          {filteredPokemons.length !== pokemons.length && (
+          {filteredPokemons.length !== pokemonData.pokemons.length && (
             <Filters
               searchPhrase={searchPhrase}
               setSearchPhrase={setSearchPhrase}
@@ -142,13 +179,16 @@ export default function PokemonCatalog() {
             />
           )}
 
-          {filteredPokemons.slice(0, displayLimit).map((pokemon) => {
-            return <Card pokemon={pokemon} />;
-          })}
+          {filteredPokemons
+            .slice(0, pokemonData.displayLimit)
+            .map((pokemon) => {
+              return <Card pokemon={pokemon} />;
+            })}
 
-          {(filteredPokemons.length > displayLimit || offset < count) && (
+          {(filteredPokemons.length > pokemonData.displayLimit ||
+            pokemonData.offset < pokemonData.count) && (
             <Button onClick={loadTwentyMore}>
-              {"load more".toUpperCase()}{" "}
+              {"load more".toUpperCase()}
             </Button>
           )}
 

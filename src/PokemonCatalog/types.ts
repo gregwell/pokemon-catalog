@@ -42,3 +42,10 @@ export enum FetchType {
   MORE,
   ALL,
 }
+
+export interface PokemonData {
+  pokemons: Pokemon[],
+  count: number;
+  offset: number;
+  displayLimit: number;
+}
