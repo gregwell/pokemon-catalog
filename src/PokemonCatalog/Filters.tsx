@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Grid, ListItemButton } from "@mui/material";
 
 import { SingleFilter } from "./SingleFilter";
@@ -9,35 +10,35 @@ interface FiltersProps {
 }
 
 export const Filters = ({ input, setInput }: FiltersProps) => {
+  const typeLabel = `type: ${input.type}`;
+  const phraseLabel = `name contain: ${input.phrase}`;
+
+  const onClose = useCallback(
+    (input: string) => {
+      setInput((prev: Input) => {
+        return {
+          ...prev,
+          [input]: "",
+        };
+      });
+    },
+    [setInput]
+  );
+
   return (
     <ListItemButton>
       <Grid container spacing={1}>
         <Grid item>
           {input.type && (
-            <SingleFilter
-              label={`type: ${input.type}`}
-              onClose={() => {
-                setInput((prev: Input) => {
-                  return {
-                    ...prev,
-                    type: "",
-                  };
-                });
-              }}
-            />
+            <SingleFilter label={typeLabel} onClose={() => onClose("type")} />
           )}
         </Grid>
         <Grid item>
           {input.phrase && input.phrase !== "" && (
             <SingleFilter
-              label={`name contain: ${input.phrase}`}
+              label={phraseLabel}
               onClose={() => {
-                setInput((prev: Input) => {
-                  return {
-                    ...prev,
-                    phrase: "",
-                  };
-                });
+                onClose("phrase");
               }}
             />
           )}
