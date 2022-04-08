@@ -18,6 +18,11 @@ export const Card = ({ pokemon }: CardProps) => {
     setOpen(false);
   }, [pokemon]);
 
+  const cardItems = [
+    pokemon.weight ? `Weight: ${pokemon.weight / 10} kg` : "no data",
+    pokemon.height ? `Height: ${pokemon.height * 10} cm` : "no data",
+  ];
+
   return (
     <Box
       sx={{
@@ -74,20 +79,9 @@ export const Card = ({ pokemon }: CardProps) => {
       </ListItemButton>
 
       {open &&
-        [
-          {
-            label: pokemon.weight
-              ? `Weight: ${pokemon.weight / 10} kg`
-              : "no data",
-          },
-          {
-            label: pokemon.height
-              ? `Height: ${pokemon.height * 10} cm`
-              : "no data",
-          },
-        ].map((item) => (
+        cardItems.map((item) => (
           <ListItemButton
-            key={item.label}
+            key={item}
             sx={{
               py: 0,
               minHeight: 32,
@@ -95,7 +89,7 @@ export const Card = ({ pokemon }: CardProps) => {
             }}
           >
             <ListItemText
-              primary={item.label}
+              primary={item}
               primaryTypographyProps={{
                 fontSize: 14,
                 fontWeight: "medium",
