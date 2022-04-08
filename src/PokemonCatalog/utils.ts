@@ -3,6 +3,7 @@ import {
   ApiResponse,
   FetchType,
   Pokemon,
+  PokemonData,
   SinglePokemonApiResponse,
 } from "./types";
 
@@ -10,20 +11,16 @@ interface FetchPokemonsProps {
   fetchType: FetchType;
   offset?: number;
   count?: number;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export async function fetchPokemons({
   fetchType,
   offset,
   count,
-  setIsLoading,
 }: FetchPokemonsProps): Promise<{
   fetchedPokemons: Pokemon[];
   count: number;
 }> {
-  setIsLoading(true);
-
   let url = "https://pokeapi.co/api/v2/pokemon";
 
   if ((fetchType === FetchType.MORE || fetchType === FetchType.ALL) && offset) {
@@ -44,9 +41,40 @@ export async function fetchPokemons({
 
   const detailedPokemons = detailedInfo.map((obj) => obj.data);
 
-  setIsLoading(false);
   return { fetchedPokemons: detailedPokemons, count: basicInfo.data.count };
 }
+
+interface PreparePokemonsProps {
+  pokemonData: PokemonData;
+  setPokemonData: React.Dispatch<React.SetStateAction<PokemonData>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  fetchType: FetchType;
+}
+
+export const preparePokemons = async ({
+  pokemonData,
+  setPokemonData,
+  setIsLoading,
+  fetchType,
+}: PreparePokemonsProps) => {
+  setIsLoading(true);
+
+  const { fetchedPokemons, count } = await fetchPokemons({
+    fetchType: fetchType,
+    offset: pokemonData.offset,
+    count: pokemonData.count,
+  });
+
+  setIsLoading(false);
+
+  setPokemonData((prev: PokemonData) => {
+    return {
+      ...prev,
+      pokemons: [...prev.pokemons, ...fetchedPokemons],
+      count: count,
+    };
+  });
+};
 
 export const getTypeLabel = (pokemon: Pokemon): string => {
   const firstType = pokemon.types?.[0].type.name;

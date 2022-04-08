@@ -1,8 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { CircularProgress, Button } from "@mui/material";
 
 import { FetchType, Pokemon, PokemonData, Input } from "./types";
-import { fetchPokemons, getUniqueTypes, filterPokemons } from "./utils";
+import {
+  getUniqueTypes,
+  filterPokemons,
+  preparePokemons,
+} from "./utils";
 import { Filters } from "./Filters";
 import { StyledContainer } from "./StyledContainer";
 import { TitleBar } from "./TitleBar";
@@ -43,18 +47,25 @@ export default function PokemonCatalog() {
 
   const loadMoreButtonText = "load more".toUpperCase();
 
+  const fetchPokemons = useCallback(
+    (fetchType: FetchType) => {
+      preparePokemons({
+        pokemonData: pokemonData,
+        setPokemonData: setPokemonData,
+        setIsLoading: setIsLoading,
+        fetchType: fetchType,
+      });
+    },
+    [pokemonData]
+  );
+
   useEffect(() => {
     const loadTwentyInitial = async () => {
-      const { fetchedPokemons, count } = await fetchPokemons({
-        fetchType: FetchType.INITIAL,
-        setIsLoading: setIsLoading,
-      });
+      fetchPokemons(FetchType.INITIAL);
 
       setPokemonData((prev: PokemonData) => {
         return {
           ...prev,
-          pokemons: fetchedPokemons,
-          count: count,
           offset: 20,
         };
       });
@@ -65,22 +76,11 @@ export default function PokemonCatalog() {
 
       setInitialDataLoaded(true);
     }
-  }, [initialDataLoaded, pokemonData]);
+  }, [fetchPokemons, initialDataLoaded]);
 
   const loadTwentyMore = async () => {
     if (pokemonData.offset < pokemonData.count) {
-      const { fetchedPokemons } = await fetchPokemons({
-        fetchType: FetchType.MORE,
-        offset: pokemonData.offset,
-        setIsLoading: setIsLoading,
-      });
-
-      setPokemonData((prev: PokemonData) => {
-        return {
-          ...prev,
-          pokemons: [...prev.pokemons, ...fetchedPokemons],
-        };
-      });
+      fetchPokemons(FetchType.MORE);
     }
 
     setPokemonData((prev: PokemonData) => {
@@ -94,19 +94,7 @@ export default function PokemonCatalog() {
 
   const loadAll = async () => {
     if (pokemonData.offset < pokemonData.count) {
-      const { fetchedPokemons } = await fetchPokemons({
-        fetchType: FetchType.ALL,
-        offset: pokemonData.offset,
-        count: pokemonData.count,
-        setIsLoading: setIsLoading,
-      });
-
-      setPokemonData((prev: PokemonData) => {
-        return {
-          ...prev,
-          pokemons: [...prev.pokemons, ...fetchedPokemons],
-        };
-      });
+      fetchPokemons(FetchType.ALL);
     }
 
     setPokemonData((prev: PokemonData) => {
