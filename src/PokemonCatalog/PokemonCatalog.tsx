@@ -192,7 +192,7 @@ export default function PokemonCatalog() {
             })}
 
           {(filteredPokemons.length > pokemonData.displayLimit ||
-            pokemonData.offset < pokemonData.count) && (
+            pokemonData.offset < pokemonData.count) && allDataLoaded && (
             <Button onClick={loadTwentyMore}>
               {"load more".toUpperCase()}
             </Button>
