@@ -44,8 +44,13 @@ export enum FetchType {
 }
 
 export interface PokemonData {
-  pokemons: Pokemon[],
+  pokemons: Pokemon[];
   count: number;
   offset: number;
   displayLimit: number;
+}
+
+export interface Input {
+  type: string | null;
+  phrase: string | null;
 }

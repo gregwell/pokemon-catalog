@@ -3,10 +3,10 @@ import { Close } from "@mui/icons-material";
 
 interface SingleFilterProps {
   label: string;
-  setValue: React.Dispatch<React.SetStateAction<string | null>>;
+  onClose: () => void;
 }
 
-export const SingleFilter = ({ label, setValue }: SingleFilterProps) => {
+export const SingleFilter = ({ label, onClose }: SingleFilterProps) => {
   return (
     <Alert
       icon={false}
@@ -16,9 +16,7 @@ export const SingleFilter = ({ label, setValue }: SingleFilterProps) => {
           aria-label="close"
           color="inherit"
           size="small"
-          onClick={() => {
-            setValue("");
-          }}
+          onClick={onClose}
         >
           <Close fontSize="inherit" />
         </IconButton>

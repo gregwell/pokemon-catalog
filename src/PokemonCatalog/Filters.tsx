@@ -1,30 +1,44 @@
 import { Grid, ListItemButton } from "@mui/material";
+
 import { SingleFilter } from "./SingleFilter";
+import { Input } from "./types";
 
 interface FiltersProps {
-  type: string | null;
-  setType: React.Dispatch<React.SetStateAction<string | null>>;
-  searchPhrase: string | null;
-  setSearchPhrase: React.Dispatch<React.SetStateAction<string | null>>;
+  input: Input;
+  setInput: React.Dispatch<React.SetStateAction<Input>>;
 }
 
-export const Filters = ({
-  type,
-  setType,
-  searchPhrase,
-  setSearchPhrase,
-}: FiltersProps) => {
+export const Filters = ({ input, setInput }: FiltersProps) => {
   return (
     <ListItemButton>
       <Grid container spacing={1}>
         <Grid item>
-          {type && <SingleFilter label={`type: ${type}`} setValue={setType} />}
+          {input.type && (
+            <SingleFilter
+              label={`type: ${input.type}`}
+              onClose={() => {
+                setInput((prev: Input) => {
+                  return {
+                    ...prev,
+                    type: "",
+                  };
+                });
+              }}
+            />
+          )}
         </Grid>
         <Grid item>
-          {searchPhrase && searchPhrase !== "" && (
+          {input.phrase && input.phrase !== "" && (
             <SingleFilter
-              label={`name contain: ${searchPhrase}`}
-              setValue={setSearchPhrase}
+              label={`name contain: ${input.phrase}`}
+              onClose={() => {
+                setInput((prev: Input) => {
+                  return {
+                    ...prev,
+                    phrase: "",
+                  };
+                });
+              }}
             />
           )}
         </Grid>

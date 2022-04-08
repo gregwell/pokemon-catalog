@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 import {
   ListItemButton,
   TextField,
@@ -11,7 +10,7 @@ import {
   Button,
 } from "@mui/material";
 
-import { FetchType, Pokemon, PokemonData } from "./types";
+import { FetchType, Pokemon, PokemonData, Input } from "./types";
 import { fetchPokemons, getUniqueTypes, filterPokemons } from "./utils";
 import { Filters } from "./Filters";
 import { Theme } from "./Theme";
@@ -32,13 +31,15 @@ export default function PokemonCatalog() {
     displayLimit: 20,
   });
 
-  const [searchPhrase, setSearchPhrase] = useState<string | null>(null);
-  const [type, setType] = useState<string | null>(null);
+  const [input, setInput] = useState<Input>({
+    type: null,
+    phrase: null,
+  });
 
   const types = getUniqueTypes(pokemonData.pokemons);
   const filteredPokemons = filterPokemons(
-    type,
-    searchPhrase,
+    input.type,
+    input.phrase,
     pokemonData.pokemons
   );
 
@@ -130,9 +131,14 @@ export default function PokemonCatalog() {
                   label="Search by name"
                   variant="outlined"
                   fullWidth
-                  value={searchPhrase}
+                  value={input.phrase}
                   onChange={(event) => {
-                    setSearchPhrase(event.target.value.toLowerCase());
+                    setInput((prev: Input) => {
+                      return {
+                        ...prev,
+                        phrase: event.target.value.toLowerCase(),
+                      };
+                    });
                     setPokemonData((prev: PokemonData) => {
                       return {
                         ...prev,
@@ -148,9 +154,14 @@ export default function PokemonCatalog() {
                 <Autocomplete
                   options={types}
                   onOpen={loadAll}
-                  value={type}
+                  value={input.type}
                   onChange={(e, val) => {
-                    setType(val);
+                    setInput((prev: Input) => {
+                      return {
+                        ...prev,
+                        type: val,
+                      };
+                    });
                     setPokemonData((prev: PokemonData) => {
                       return {
                         ...prev,
@@ -171,12 +182,7 @@ export default function PokemonCatalog() {
           </ListItemButton>
 
           {filteredPokemons.length !== pokemonData.pokemons.length && (
-            <Filters
-              searchPhrase={searchPhrase}
-              setSearchPhrase={setSearchPhrase}
-              type={type}
-              setType={setType}
-            />
+            <Filters input={input} setInput={setInput} />
           )}
 
           {filteredPokemons
