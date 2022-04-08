@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { ListItemButton, Grid, TextField, Autocomplete } from "@mui/material";
 
 import { Input, PokemonData } from "./types";
@@ -19,20 +20,23 @@ export const InputFilters = ({
   isLoading,
   types,
 }: InputFiltersProps) => {
-  const onChange = (newValue: string | null, input: string) => {
-    setInput((prev: Input) => {
-      return {
-        ...prev,
-        [input]: newValue,
-      };
-    });
-    setPokemonData((prev: PokemonData) => {
-      return {
-        ...prev,
-        displayLimit: 20,
-      };
-    });
-  };
+  const onChange = useCallback(
+    (newValue: string | null, input: string) => {
+      setInput((prev: Input) => {
+        return {
+          ...prev,
+          [input]: newValue,
+        };
+      });
+      setPokemonData((prev: PokemonData) => {
+        return {
+          ...prev,
+          displayLimit: 20,
+        };
+      });
+    },
+    [setInput, setPokemonData]
+  );
 
   return (
     <ListItemButton>
@@ -63,11 +67,7 @@ export const InputFilters = ({
               <TextField
                 {...params}
                 disabled={isLoading}
-                label={
-                isLoading
-                    ? "loading types..."
-                    : "Type"
-                }
+                label={isLoading ? "loading types..." : "Type"}
               />
             )}
           />

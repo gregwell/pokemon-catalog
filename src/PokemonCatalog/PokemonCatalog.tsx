@@ -2,11 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { CircularProgress, Button } from "@mui/material";
 
 import { FetchType, Pokemon, PokemonData, Input } from "./types";
-import {
-  getUniqueTypes,
-  filterPokemons,
-  preparePokemons,
-} from "./utils";
+import { getUniqueTypes, filterPokemons, preparePokemons } from "./utils";
 import { Filters } from "./Filters";
 import { StyledContainer } from "./StyledContainer";
 import { TitleBar } from "./TitleBar";
@@ -29,14 +25,20 @@ export default function PokemonCatalog() {
     phrase: null,
   });
 
-  const types = getUniqueTypes(pokemonData.pokemons);
+  const types = useMemo(
+    () => getUniqueTypes(pokemonData.pokemons),
+    [pokemonData.pokemons]
+  );
 
   const filteredPokemons = useMemo(
     () => filterPokemons(input.type, input.phrase, pokemonData.pokemons),
     [input.phrase, input.type, pokemonData.pokemons]
   );
 
-  const pokemonsToDisplay = filteredPokemons.slice(0, pokemonData.displayLimit);
+  const pokemonsToDisplay = useMemo(
+    () => filteredPokemons.slice(0, pokemonData.displayLimit),
+    [filteredPokemons, pokemonData.displayLimit]
+  );
 
   const showFilters = filteredPokemons.length !== pokemonData.pokemons.length;
 
@@ -62,7 +64,7 @@ export default function PokemonCatalog() {
   useEffect(() => {
     const loadTwentyInitial = async () => {
       fetchPokemons(FetchType.INITIAL);
-      
+
       setPokemonData((prev: PokemonData) => {
         return {
           ...prev,
@@ -77,7 +79,7 @@ export default function PokemonCatalog() {
     }
   }, [fetchPokemons, initialDataLoaded]);
 
-  const loadTwentyMore = async () => {
+  const loadTwentyMore = useCallback(async () => {
     if (pokemonData.offset < pokemonData.count) {
       fetchPokemons(FetchType.MORE);
     }
@@ -89,7 +91,7 @@ export default function PokemonCatalog() {
         displayLimit: prev.displayLimit + 20,
       };
     });
-  };
+  }, [fetchPokemons, pokemonData.count, pokemonData.offset]);
 
   const loadAll = async () => {
     if (pokemonData.offset < pokemonData.count) {
