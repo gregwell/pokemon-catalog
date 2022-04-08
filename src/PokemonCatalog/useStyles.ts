@@ -11,6 +11,11 @@ export const useStyles = makeStyles({
       minWidth: 0,
       marginRight: 16,
     },
+    padding: "23px",
+  },
+  paper: {
+    maxWidth: 800,
+    margin: "0 auto",
   },
   croppedIcon: {
     width: "35px",

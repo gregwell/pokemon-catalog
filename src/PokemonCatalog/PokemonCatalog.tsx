@@ -8,6 +8,7 @@ import {
   Autocomplete,
   CircularProgress,
   Button,
+  CssBaseline,
 } from "@mui/material";
 
 import { FetchType, Pokemon, PokemonData, Input } from "./types";
@@ -118,90 +119,93 @@ export default function PokemonCatalog() {
   };
 
   return (
-    <Box className={classes.root} sx={{ padding: "15px" }}>
-      <Theme>
-        <Paper elevation={0} sx={{ maxWidth: 800, margin: "0 auto" }}>
-          <Navbar />
+    <>
+      <CssBaseline />
+      <Box className={classes.root}>
+        <Theme>
+          <Paper className={classes.paper} elevation={0}>
+            <Navbar />
 
-          <ListItemButton>
-            <Grid container spacing={1}>
-              <Grid item xs={12} sm={9}>
-                <TextField
-                  id="outlined-basic"
-                  label="Search by name"
-                  variant="outlined"
-                  fullWidth
-                  value={input.phrase}
-                  onChange={(event) => {
-                    setInput((prev: Input) => {
-                      return {
-                        ...prev,
-                        phrase: event.target.value.toLowerCase(),
-                      };
-                    });
-                    setPokemonData((prev: PokemonData) => {
-                      return {
-                        ...prev,
-                        displayLimit: 20,
-                      };
-                    });
-                    loadAll();
-                  }}
-                />
+            <ListItemButton>
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={9}>
+                  <TextField
+                    id="outlined-basic"
+                    label="Search by name"
+                    variant="outlined"
+                    fullWidth
+                    value={input.phrase}
+                    onChange={(event) => {
+                      setInput((prev: Input) => {
+                        return {
+                          ...prev,
+                          phrase: event.target.value.toLowerCase(),
+                        };
+                      });
+                      setPokemonData((prev: PokemonData) => {
+                        return {
+                          ...prev,
+                          displayLimit: 20,
+                        };
+                      });
+                      loadAll();
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={3}>
+                  <Autocomplete
+                    options={types}
+                    onOpen={loadAll}
+                    value={input.type}
+                    onChange={(e, val) => {
+                      setInput((prev: Input) => {
+                        return {
+                          ...prev,
+                          type: val,
+                        };
+                      });
+                      setPokemonData((prev: PokemonData) => {
+                        return {
+                          ...prev,
+                          displayLimit: 20,
+                        };
+                      });
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        disabled={!allDataLoaded}
+                        label={allDataLoaded ? "Type" : "loading all types..."}
+                      />
+                    )}
+                  />
+                </Grid>
               </Grid>
+            </ListItemButton>
 
-              <Grid item xs={12} sm={3}>
-                <Autocomplete
-                  options={types}
-                  onOpen={loadAll}
-                  value={input.type}
-                  onChange={(e, val) => {
-                    setInput((prev: Input) => {
-                      return {
-                        ...prev,
-                        type: val,
-                      };
-                    });
-                    setPokemonData((prev: PokemonData) => {
-                      return {
-                        ...prev,
-                        displayLimit: 20,
-                      };
-                    });
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      disabled={!allDataLoaded}
-                      label={allDataLoaded ? "Type" : "loading all types..."}
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
-          </ListItemButton>
-
-          {filteredPokemons.length !== pokemonData.pokemons.length && (
-            <Filters input={input} setInput={setInput} />
-          )}
-
-          {filteredPokemons
-            .slice(0, pokemonData.displayLimit)
-            .map((pokemon) => {
-              return <Card pokemon={pokemon} />;
-            })}
-
-          {(filteredPokemons.length > pokemonData.displayLimit ||
-            pokemonData.offset < pokemonData.count) &&
-            allDataLoaded && (
-              <Button onClick={loadTwentyMore}>
-                {"load more".toUpperCase()}
-              </Button>
+            {filteredPokemons.length !== pokemonData.pokemons.length && (
+              <Filters input={input} setInput={setInput} />
             )}
 
-          {!allDataLoaded && <CircularProgress />}
-        </Paper>
-      </Theme>
-    </Box>
+            {filteredPokemons
+              .slice(0, pokemonData.displayLimit)
+              .map((pokemon) => {
+                return <Card pokemon={pokemon} />;
+              })}
+
+            {(filteredPokemons.length > pokemonData.displayLimit ||
+              pokemonData.offset < pokemonData.count) &&
+              allDataLoaded && (
+                <Button onClick={loadTwentyMore}>
+                  {"load more".toUpperCase()}
+                </Button>
+              )}
+
+            {!allDataLoaded && <CircularProgress />}
+          </Paper>
+        </Theme>
+      </Box>
+    </>
   );
 }
