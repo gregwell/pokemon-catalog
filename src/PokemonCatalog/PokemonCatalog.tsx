@@ -7,7 +7,7 @@ import { Filters } from "./Filters";
 import { StyledContainer } from "./StyledContainer";
 import { TitleBar } from "./TitleBar";
 import { Card } from "./Card";
-import { InputFilters } from "./InputFilters";
+import { FilterInputs } from "./FilterInputs";
 
 export default function PokemonCatalog() {
   const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
@@ -110,7 +110,7 @@ export default function PokemonCatalog() {
     <StyledContainer>
       <TitleBar />
 
-      <InputFilters
+      <FilterInputs
         input={input}
         setInput={setInput}
         setPokemonData={setPokemonData}
@@ -121,9 +121,9 @@ export default function PokemonCatalog() {
 
       {showFilters && <Filters input={input} setInput={setInput} />}
 
-      {pokemonsToDisplay.map((pokemon) => {
-        return <Card pokemon={pokemon} />;
-      })}
+      {pokemonsToDisplay.map((pokemon) => (
+        <Card pokemon={pokemon} />
+      ))}
 
       {showLoadMoreButton && (
         <Button onClick={loadTwentyMore}>{loadMoreButtonText}</Button>

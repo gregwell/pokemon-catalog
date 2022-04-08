@@ -3,7 +3,7 @@ import { ListItemButton, Grid, TextField, Autocomplete } from "@mui/material";
 
 import { Input, PokemonData } from "./types";
 
-interface InputFiltersProps {
+interface FilterInputsProps {
   input: Input;
   setInput: React.Dispatch<React.SetStateAction<Input>>;
   setPokemonData: React.Dispatch<React.SetStateAction<PokemonData>>;
@@ -12,14 +12,14 @@ interface InputFiltersProps {
   types: string[];
 }
 
-export const InputFilters = ({
+export const FilterInputs = ({
   input,
   setInput,
   setPokemonData,
   loadAll,
   isLoading,
   types,
-}: InputFiltersProps) => {
+}: FilterInputsProps) => {
   const onChange = useCallback(
     (newValue: string | null, input: string) => {
       setInput((prev: Input) => {
