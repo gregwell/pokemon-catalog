@@ -17,7 +17,6 @@ export interface Pokemon {
   };
   weight?: number;
   height?: number;
-  showDetails?: boolean;
 }
 
 export interface PokemonBasicInfo {

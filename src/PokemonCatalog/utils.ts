@@ -18,7 +18,10 @@ export async function fetchPokemons({
   offset,
   count,
   setSuccess,
-}: PreparePokemonsProps): Promise<{ fetchedPokemons: Pokemon[]; count: number }> {
+}: PreparePokemonsProps): Promise<{
+  fetchedPokemons: Pokemon[];
+  count: number;
+}> {
   let url = "https://pokeapi.co/api/v2/pokemon";
 
   if (fetchType === FetchType.MORE || fetchType === FetchType.ALL) {
@@ -37,10 +40,7 @@ export async function fetchPokemons({
     )
   )) as SinglePokemonApiResponse[];
 
-  const detailedPokemons = detailedInfo.map((obj) => ({
-    ...obj.data,
-    showDetails: false,
-  }));
+  const detailedPokemons = detailedInfo.map((obj) => obj.data);
 
   if (setSuccess) {
     setSuccess(true);

@@ -26,7 +26,6 @@ export default function PokemonCatalog() {
   const [allDataLoaded, setAllDataLoaded] = useState<boolean>(true);
 
   const [pokemons, setPokemons] = useState<Pokemon[]>([] as Pokemon[]);
-
   const [count, setCount] = useState<number>(0);
   const [offset, setOffset] = useState<number>(0);
   const [displayLimit, setDisplayLimit] = useState<number>(20);
