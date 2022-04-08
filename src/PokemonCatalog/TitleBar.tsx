@@ -1,6 +1,6 @@
 import { ListItemButton, ListItemText } from '@mui/material';
 
-export const Navbar = () => {
+export const TitleBar = () => {
     return (
         <ListItemButton
         component="a"

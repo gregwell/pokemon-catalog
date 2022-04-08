@@ -6,25 +6,23 @@ import {
   SinglePokemonApiResponse,
 } from "./types";
 
-interface PreparePokemonsProps {
+interface FetchPokemonsProps {
   fetchType: FetchType;
   offset?: number;
   count?: number;
-  setSuccess?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export async function fetchPokemons({
   fetchType,
   offset,
   count,
-  setSuccess,
-}: PreparePokemonsProps): Promise<{
+}: FetchPokemonsProps): Promise<{
   fetchedPokemons: Pokemon[];
   count: number;
 }> {
   let url = "https://pokeapi.co/api/v2/pokemon";
 
-  if (fetchType === FetchType.MORE || fetchType === FetchType.ALL) {
+  if ((fetchType === FetchType.MORE || fetchType === FetchType.ALL) && offset) {
     url = `${url}?offset=${offset}`;
   }
 
@@ -41,10 +39,6 @@ export async function fetchPokemons({
   )) as SinglePokemonApiResponse[];
 
   const detailedPokemons = detailedInfo.map((obj) => obj.data);
-
-  if (setSuccess) {
-    setSuccess(true);
-  }
 
   return { fetchedPokemons: detailedPokemons, count: basicInfo.data.count };
 }

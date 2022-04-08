@@ -1,10 +1,10 @@
+import { useState, useEffect } from "react";
 import { Box, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { KeyboardArrowDown } from "@mui/icons-material";
 
 import { useStyles } from "./useStyles";
 import { Pokemon } from "./types";
 import { getTypeLabel } from "./utils";
-import { useState } from "react";
 
 interface CardProps {
   pokemon: Pokemon;
@@ -13,6 +13,10 @@ interface CardProps {
 export const Card = ({ pokemon }: CardProps) => {
   const classes = useStyles();
   const [open, setOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pokemon]);
 
   return (
     <Box

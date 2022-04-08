@@ -1,29 +1,17 @@
-import { useState, useEffect } from "react";
-import {
-  ListItemButton,
-  TextField,
-  Paper,
-  Box,
-  Grid,
-  Autocomplete,
-  CircularProgress,
-  Button,
-  CssBaseline,
-} from "@mui/material";
+import { useState, useEffect, useMemo } from "react";
+import { CircularProgress, Button } from "@mui/material";
 
 import { FetchType, Pokemon, PokemonData, Input } from "./types";
 import { fetchPokemons, getUniqueTypes, filterPokemons } from "./utils";
 import { Filters } from "./Filters";
-import { Theme } from "./Theme";
-import { Navbar } from "./Navbar";
+import { StyledContainer } from "./StyledContainer";
+import { TitleBar } from "./TitleBar";
 import { Card } from "./Card";
-import { useStyles } from "./useStyles";
+import { InputFilters } from "./InputFilters";
 
 export default function PokemonCatalog() {
-  const classes = useStyles();
-
   const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
-  const [allDataLoaded, setAllDataLoaded] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [pokemonData, setPokemonData] = useState<PokemonData>({
     pokemons: [] as Pokemon[],
@@ -38,17 +26,34 @@ export default function PokemonCatalog() {
   });
 
   const types = getUniqueTypes(pokemonData.pokemons);
-  const filteredPokemons = filterPokemons(
-    input.type,
-    input.phrase,
-    pokemonData.pokemons
+
+  const filteredPokemons = useMemo(
+    () => filterPokemons(input.type, input.phrase, pokemonData.pokemons),
+    [input.phrase, input.type, pokemonData.pokemons]
   );
+
+  const pokemonsToDisplay = filteredPokemons.slice(0, pokemonData.displayLimit);
+
+  const showFilters = filteredPokemons.length !== pokemonData.pokemons.length;
+
+  const showLoadMoreButton =
+    (filteredPokemons.length > pokemonData.displayLimit ||
+      pokemonData.offset < pokemonData.count) &&
+    !isLoading;
+
+  const showCircularProgress = isLoading;
+
+  const loadMoreButtonText = "load more".toUpperCase();
 
   useEffect(() => {
     const loadTwentyInitial = async () => {
+      setIsLoading(true);
+
       const { fetchedPokemons, count } = await fetchPokemons({
         fetchType: FetchType.INITIAL,
       });
+
+      setIsLoading(false);
 
       setPokemonData((prev: PokemonData) => {
         return {
@@ -69,10 +74,14 @@ export default function PokemonCatalog() {
 
   const loadTwentyMore = async () => {
     if (pokemonData.offset < pokemonData.count) {
+      setIsLoading(true);
+
       const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.MORE,
         offset: pokemonData.offset,
       });
+
+      setIsLoading(false);
 
       setPokemonData((prev: PokemonData) => {
         return {
@@ -93,14 +102,15 @@ export default function PokemonCatalog() {
 
   const loadAll = async () => {
     if (pokemonData.offset < pokemonData.count) {
-      setAllDataLoaded(false);
+      setIsLoading(true);
 
       const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.ALL,
         offset: pokemonData.offset,
         count: pokemonData.count,
-        setSuccess: setAllDataLoaded,
       });
+
+      setIsLoading(false);
 
       setPokemonData((prev: PokemonData) => {
         return {
@@ -119,93 +129,29 @@ export default function PokemonCatalog() {
   };
 
   return (
-    <>
-      <CssBaseline />
-      <Box className={classes.root}>
-        <Theme>
-          <Paper className={classes.paper} elevation={0}>
-            <Navbar />
+    <StyledContainer>
+      <TitleBar />
 
-            <ListItemButton>
-              <Grid container spacing={1}>
-                <Grid item xs={12} sm={9}>
-                  <TextField
-                    id="outlined-basic"
-                    label="Search by name"
-                    variant="outlined"
-                    fullWidth
-                    value={input.phrase}
-                    onChange={(event) => {
-                      setInput((prev: Input) => {
-                        return {
-                          ...prev,
-                          phrase: event.target.value.toLowerCase(),
-                        };
-                      });
-                      setPokemonData((prev: PokemonData) => {
-                        return {
-                          ...prev,
-                          displayLimit: 20,
-                        };
-                      });
-                      loadAll();
-                    }}
-                  />
-                </Grid>
+      <InputFilters
+        input={input}
+        setInput={setInput}
+        setPokemonData={setPokemonData}
+        loadAll={loadAll}
+        isLoading={isLoading}
+        types={types}
+      />
 
-                <Grid item xs={12} sm={3}>
-                  <Autocomplete
-                    options={types}
-                    onOpen={loadAll}
-                    value={input.type}
-                    onChange={(e, val) => {
-                      setInput((prev: Input) => {
-                        return {
-                          ...prev,
-                          type: val,
-                        };
-                      });
-                      setPokemonData((prev: PokemonData) => {
-                        return {
-                          ...prev,
-                          displayLimit: 20,
-                        };
-                      });
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        disabled={!allDataLoaded}
-                        label={allDataLoaded ? "Type" : "loading all types..."}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </ListItemButton>
+      {showFilters && <Filters input={input} setInput={setInput} />}
 
-            {filteredPokemons.length !== pokemonData.pokemons.length && (
-              <Filters input={input} setInput={setInput} />
-            )}
+      {pokemonsToDisplay.map((pokemon) => {
+        return <Card pokemon={pokemon} />;
+      })}
 
-            {filteredPokemons
-              .slice(0, pokemonData.displayLimit)
-              .map((pokemon) => {
-                return <Card pokemon={pokemon} />;
-              })}
+      {showLoadMoreButton && (
+        <Button onClick={loadTwentyMore}>{loadMoreButtonText}</Button>
+      )}
 
-            {(filteredPokemons.length > pokemonData.displayLimit ||
-              pokemonData.offset < pokemonData.count) &&
-              allDataLoaded && (
-                <Button onClick={loadTwentyMore}>
-                  {"load more".toUpperCase()}
-                </Button>
-              )}
-
-            {!allDataLoaded && <CircularProgress />}
-          </Paper>
-        </Theme>
-      </Box>
-    </>
+      {showCircularProgress && <CircularProgress />}
+    </StyledContainer>
   );
 }
