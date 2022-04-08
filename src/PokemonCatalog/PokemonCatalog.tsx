@@ -62,7 +62,7 @@ export default function PokemonCatalog() {
   useEffect(() => {
     const loadTwentyInitial = async () => {
       fetchPokemons(FetchType.INITIAL);
-
+      
       setPokemonData((prev: PokemonData) => {
         return {
           ...prev,
@@ -73,7 +73,6 @@ export default function PokemonCatalog() {
 
     if (!initialDataLoaded) {
       loadTwentyInitial();
-
       setInitialDataLoaded(true);
     }
   }, [fetchPokemons, initialDataLoaded]);
