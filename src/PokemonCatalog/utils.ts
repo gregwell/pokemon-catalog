@@ -10,16 +10,20 @@ interface FetchPokemonsProps {
   fetchType: FetchType;
   offset?: number;
   count?: number;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export async function fetchPokemons({
   fetchType,
   offset,
   count,
+  setIsLoading,
 }: FetchPokemonsProps): Promise<{
   fetchedPokemons: Pokemon[];
   count: number;
 }> {
+  setIsLoading(true);
+
   let url = "https://pokeapi.co/api/v2/pokemon";
 
   if ((fetchType === FetchType.MORE || fetchType === FetchType.ALL) && offset) {
@@ -40,6 +44,7 @@ export async function fetchPokemons({
 
   const detailedPokemons = detailedInfo.map((obj) => obj.data);
 
+  setIsLoading(false);
   return { fetchedPokemons: detailedPokemons, count: basicInfo.data.count };
 }
 

@@ -45,13 +45,10 @@ export default function PokemonCatalog() {
 
   useEffect(() => {
     const loadTwentyInitial = async () => {
-      setIsLoading(true);
-
       const { fetchedPokemons, count } = await fetchPokemons({
         fetchType: FetchType.INITIAL,
+        setIsLoading: setIsLoading,
       });
-
-      setIsLoading(false);
 
       setPokemonData((prev: PokemonData) => {
         return {
@@ -72,14 +69,11 @@ export default function PokemonCatalog() {
 
   const loadTwentyMore = async () => {
     if (pokemonData.offset < pokemonData.count) {
-      setIsLoading(true);
-
       const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.MORE,
         offset: pokemonData.offset,
+        setIsLoading: setIsLoading,
       });
-
-      setIsLoading(false);
 
       setPokemonData((prev: PokemonData) => {
         return {
@@ -100,15 +94,12 @@ export default function PokemonCatalog() {
 
   const loadAll = async () => {
     if (pokemonData.offset < pokemonData.count) {
-      setIsLoading(true);
-
       const { fetchedPokemons } = await fetchPokemons({
         fetchType: FetchType.ALL,
         offset: pokemonData.offset,
         count: pokemonData.count,
+        setIsLoading: setIsLoading,
       });
-
-      setIsLoading(false);
 
       setPokemonData((prev: PokemonData) => {
         return {

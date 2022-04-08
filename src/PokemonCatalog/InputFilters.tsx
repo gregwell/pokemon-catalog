@@ -63,7 +63,11 @@ export const InputFilters = ({
               <TextField
                 {...params}
                 disabled={isLoading}
-                label={isLoading ? "loading all types..." : "Type"}
+                label={
+                isLoading
+                    ? "loading types..."
+                    : "Type"
+                }
               />
             )}
           />
