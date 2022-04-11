@@ -2,14 +2,9 @@ import { useCallback } from "react";
 import { Grid, ListItemButton } from "@mui/material";
 
 import { SingleFilter } from "./SingleFilter";
-import { State } from "./types";
+import { State, StateProps } from "./types";
 
-interface FiltersProps {
-  state: State;
-  dispatch: React.Dispatch<React.SetStateAction<State>>;
-}
-
-export const Filters = ({ state, dispatch }: FiltersProps) => {
+export const Filters = ({ state, dispatch }: StateProps) => {
   const typeLabel = `type: ${state.type}`;
   const phraseLabel = `name contains: ${state.phrase}`;
 

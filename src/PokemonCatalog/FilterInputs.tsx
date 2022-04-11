@@ -1,12 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { ListItemButton, Grid, TextField, Autocomplete } from "@mui/material";
 
-import { State } from "./types";
+import { State, StateProps } from "./types";
 import { getUniqueTypes } from "./utils";
 
-interface FilterInputsProps {
-  state: State;
-  dispatch: React.Dispatch<React.SetStateAction<State>>;
+interface FilterInputsProps extends StateProps {
   loadAll: () => void;
   isLoading: boolean;
 }

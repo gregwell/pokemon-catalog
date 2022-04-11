@@ -51,3 +51,8 @@ export interface State {
   type: string;
   phrase: string;
 }
+
+export interface StateProps {
+  state: State;
+  dispatch: React.Dispatch<React.SetStateAction<State>>;
+}
