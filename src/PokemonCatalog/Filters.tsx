@@ -2,39 +2,39 @@ import { useCallback } from "react";
 import { Grid, ListItemButton } from "@mui/material";
 
 import { SingleFilter } from "./SingleFilter";
-import { Input } from "./types";
+import { State } from "./types";
 
 interface FiltersProps {
-  input: Input;
-  setInput: React.Dispatch<React.SetStateAction<Input>>;
+  state: State;
+  dispatch: React.Dispatch<React.SetStateAction<State>>;
 }
 
-export const Filters = ({ input, setInput }: FiltersProps) => {
-  const typeLabel = `type: ${input.type}`;
-  const phraseLabel = `name contains: ${input.phrase}`;
+export const Filters = ({ state, dispatch }: FiltersProps) => {
+  const typeLabel = `type: ${state.type}`;
+  const phraseLabel = `name contains: ${state.phrase}`;
 
   const onClose = useCallback(
     (input: string) => {
-      setInput((prev: Input) => {
+      dispatch((prev: State) => {
         return {
           ...prev,
           [input]: "",
         };
       });
     },
-    [setInput]
+    [dispatch]
   );
 
   return (
     <ListItemButton>
       <Grid container spacing={1}>
         <Grid item>
-          {input.type && (
+          {state.type && (
             <SingleFilter label={typeLabel} onClose={() => onClose("type")} />
           )}
         </Grid>
         <Grid item>
-          {input.phrase && input.phrase !== "" && (
+          {state.phrase && state.phrase !== "" && (
             <SingleFilter
               label={phraseLabel}
               onClose={() => {

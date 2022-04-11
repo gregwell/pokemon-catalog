@@ -1,50 +1,42 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { CircularProgress, Button } from "@mui/material";
 
-import { FetchType, Pokemon, PokemonData, Input } from "./types";
-import { getUniqueTypes, filterPokemons, preparePokemons } from "./utils";
 import { Filters } from "./Filters";
 import { StyledContainer } from "./StyledContainer";
 import { TitleBar } from "./TitleBar";
 import { Card } from "./Card";
 import { FilterInputs } from "./FilterInputs";
+import { FetchType, Pokemon, State } from "./types";
+import { filterPokemons, preparePokemons } from "./utils";
 
 export default function PokemonCatalog() {
   const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [pokemonData, setPokemonData] = useState<PokemonData>({
+  const [state, dispatch] = useState<State>({
     pokemons: [] as Pokemon[],
     count: 0,
     offset: 0,
     displayLimit: 20,
+    type: "",
+    phrase: "",
   });
-
-  const [input, setInput] = useState<Input>({
-    type: null,
-    phrase: null,
-  });
-
-  const types = useMemo(
-    () => getUniqueTypes(pokemonData.pokemons),
-    [pokemonData.pokemons]
-  );
 
   const filteredPokemons = useMemo(
-    () => filterPokemons(input.type, input.phrase, pokemonData.pokemons),
-    [input.phrase, input.type, pokemonData.pokemons]
+    () => filterPokemons(state.type, state.phrase, state.pokemons),
+    [state.phrase, state.type, state.pokemons]
   );
 
   const pokemonsToDisplay = useMemo(
-    () => filteredPokemons.slice(0, pokemonData.displayLimit),
-    [filteredPokemons, pokemonData.displayLimit]
+    () => filteredPokemons.slice(0, state.displayLimit),
+    [filteredPokemons, state.displayLimit]
   );
 
-  const showFilters = filteredPokemons.length !== pokemonData.pokemons.length;
+  const showFilters = filteredPokemons.length !== state.pokemons.length;
 
   const showLoadMoreButton =
-    (filteredPokemons.length > pokemonData.displayLimit ||
-      pokemonData.offset < pokemonData.count) &&
+    (filteredPokemons.length > state.displayLimit ||
+      state.offset < state.count) &&
     !isLoading;
 
   const loadMoreButtonText = "load more".toUpperCase();
@@ -52,20 +44,20 @@ export default function PokemonCatalog() {
   const fetchPokemons = useCallback(
     (fetchType: FetchType) => {
       preparePokemons({
-        pokemonData: pokemonData,
-        setPokemonData: setPokemonData,
+        state: state,
+        dispatch: dispatch,
         setIsLoading: setIsLoading,
         fetchType: fetchType,
       });
     },
-    [pokemonData]
+    [state]
   );
 
   useEffect(() => {
-    const loadTwentyInitial = async () => {
+    const loadInitial = async () => {
       fetchPokemons(FetchType.INITIAL);
 
-      setPokemonData((prev: PokemonData) => {
+      dispatch((prev: State) => {
         return {
           ...prev,
           offset: 20,
@@ -74,31 +66,31 @@ export default function PokemonCatalog() {
     };
 
     if (!initialDataLoaded) {
-      loadTwentyInitial();
+      loadInitial();
       setInitialDataLoaded(true);
     }
   }, [fetchPokemons, initialDataLoaded]);
 
-  const loadTwentyMore = useCallback(async () => {
-    if (pokemonData.offset < pokemonData.count) {
+  const loadMore = useCallback(async () => {
+    if (state.offset < state.count) {
       fetchPokemons(FetchType.MORE);
     }
 
-    setPokemonData((prev: PokemonData) => {
+    dispatch((prev: State) => {
       return {
         ...prev,
         offset: prev.offset + 20,
         displayLimit: prev.displayLimit + 20,
       };
     });
-  }, [fetchPokemons, pokemonData.count, pokemonData.offset]);
+  }, [fetchPokemons, state.count, state.offset]);
 
   const loadAll = async () => {
-    if (pokemonData.offset < pokemonData.count) {
+    if (state.offset < state.count) {
       fetchPokemons(FetchType.ALL);
     }
 
-    setPokemonData((prev: PokemonData) => {
+    dispatch((prev: State) => {
       return {
         ...prev,
         offset: prev.count,
@@ -111,22 +103,20 @@ export default function PokemonCatalog() {
       <TitleBar />
 
       <FilterInputs
-        input={input}
-        setInput={setInput}
-        setPokemonData={setPokemonData}
+        state={state}
+        dispatch={dispatch}
         loadAll={loadAll}
         isLoading={isLoading}
-        types={types}
       />
 
-      {showFilters && <Filters input={input} setInput={setInput} />}
+      {showFilters && <Filters state={state} dispatch={dispatch} />}
 
-      {pokemonsToDisplay.map((pokemon) => (
-        <Card pokemon={pokemon} />
+      {pokemonsToDisplay.map((pokemon: Pokemon) => (
+        <Card key={pokemon.name} pokemon={pokemon} />
       ))}
 
       {showLoadMoreButton && (
-        <Button onClick={loadTwentyMore}>{loadMoreButtonText}</Button>
+        <Button onClick={loadMore}>{loadMoreButtonText}</Button>
       )}
 
       {isLoading && <CircularProgress />}

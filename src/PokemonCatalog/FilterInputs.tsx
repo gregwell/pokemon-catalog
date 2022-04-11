@@ -1,41 +1,40 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { ListItemButton, Grid, TextField, Autocomplete } from "@mui/material";
 
-import { Input, PokemonData } from "./types";
+import { State } from "./types";
+import { getUniqueTypes } from "./utils";
 
 interface FilterInputsProps {
-  input: Input;
-  setInput: React.Dispatch<React.SetStateAction<Input>>;
-  setPokemonData: React.Dispatch<React.SetStateAction<PokemonData>>;
+  state: State;
+  dispatch: React.Dispatch<React.SetStateAction<State>>;
   loadAll: () => void;
   isLoading: boolean;
-  types: string[];
 }
 
 export const FilterInputs = ({
-  input,
-  setInput,
-  setPokemonData,
+  state,
+  dispatch,
   loadAll,
   isLoading,
-  types,
 }: FilterInputsProps) => {
+  const types = useMemo(() => getUniqueTypes(state.pokemons), [state.pokemons]);
+
   const onChange = useCallback(
     (newValue: string | null, input: string) => {
-      setInput((prev: Input) => {
+      dispatch((prev: State) => {
         return {
           ...prev,
           [input]: newValue,
         };
       });
-      setPokemonData((prev: PokemonData) => {
+      dispatch((prev: State) => {
         return {
           ...prev,
           displayLimit: 20,
         };
       });
     },
-    [setInput, setPokemonData]
+    [dispatch]
   );
 
   return (
@@ -47,7 +46,7 @@ export const FilterInputs = ({
             label="Search by name"
             variant="outlined"
             fullWidth
-            value={input.phrase}
+            value={state.phrase}
             onChange={(event) => {
               onChange(event.target.value.toLowerCase(), "phrase");
               loadAll();
@@ -59,7 +58,7 @@ export const FilterInputs = ({
           <Autocomplete
             options={types}
             onOpen={loadAll}
-            value={input.type}
+            value={state.type}
             onChange={(e, val) => {
               onChange(val, "type");
             }}

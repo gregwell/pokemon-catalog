@@ -3,7 +3,7 @@ import {
   ApiResponse,
   FetchType,
   Pokemon,
-  PokemonData,
+  State,
   SinglePokemonApiResponse,
 } from "./types";
 
@@ -45,15 +45,15 @@ export async function fetchPokemons({
 }
 
 interface PreparePokemonsProps {
-  pokemonData: PokemonData;
-  setPokemonData: React.Dispatch<React.SetStateAction<PokemonData>>;
+  state: State;
+  dispatch: React.Dispatch<React.SetStateAction<State>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   fetchType: FetchType;
 }
 
 export const preparePokemons = async ({
-  pokemonData,
-  setPokemonData,
+  state,
+  dispatch,
   setIsLoading,
   fetchType,
 }: PreparePokemonsProps) => {
@@ -61,13 +61,13 @@ export const preparePokemons = async ({
 
   const { fetchedPokemons, count } = await fetchPokemons({
     fetchType: fetchType,
-    offset: pokemonData.offset,
-    count: pokemonData.count,
+    offset: state.offset,
+    count: state.count,
   });
 
   setIsLoading(false);
 
-  setPokemonData((prev: PokemonData) => {
+  dispatch((prev: State) => {
     return {
       ...prev,
       pokemons: [...prev.pokemons, ...fetchedPokemons],
