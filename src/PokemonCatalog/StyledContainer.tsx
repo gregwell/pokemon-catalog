@@ -10,9 +10,10 @@ import { useStyles } from "./useStyles";
 
 interface StyledContainerProps {
   children: React.ReactNode;
+  darkTheme: boolean;
 }
 
-export const StyledContainer = ({ children }: StyledContainerProps) => {
+export const StyledContainer = ({ children, darkTheme }: StyledContainerProps) => {
   const classes = useStyles();
 
   const theme = createTheme({
@@ -25,8 +26,8 @@ export const StyledContainer = ({ children }: StyledContainerProps) => {
     },
     palette: {
       mode: "dark",
-      primary: { main: "rgb(102, 157, 246)" },
-      background: { paper: "rgb(5, 30, 52)" },
+      primary: { main: darkTheme ? "#242eb6" : "#4a4b5b" },
+      background: { paper: darkTheme? "#4eef00" : "#de520a"},
     },
   });
 

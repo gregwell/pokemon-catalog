@@ -50,6 +50,7 @@ export interface State {
   displayLimit: number;
   type: string;
   phrase: string;
+  darkTheme: boolean;
 }
 
 export interface StateProps {

@@ -20,6 +20,7 @@ export default function PokemonCatalog() {
     displayLimit: 20,
     type: "",
     phrase: "",
+    darkTheme: true,
   });
 
   const filteredPokemons = useMemo(
@@ -98,8 +99,17 @@ export default function PokemonCatalog() {
     });
   };
 
+  const onSwitchTheme = () => {
+    dispatch((prev: State) => {
+      return {
+        ...prev,
+        darkTheme: !prev.darkTheme,
+      };
+    });
+  };
+
   return (
-    <StyledContainer>
+    <StyledContainer darkTheme={state.darkTheme}>
       <TitleBar />
 
       <FilterInputs
@@ -120,6 +130,8 @@ export default function PokemonCatalog() {
       )}
 
       {isLoading && <CircularProgress />}
+
+      <button onClick={onSwitchTheme}>change theme</button>
     </StyledContainer>
   );
 }

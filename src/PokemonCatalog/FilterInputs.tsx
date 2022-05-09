@@ -18,16 +18,11 @@ export const FilterInputs = ({
   const types = useMemo(() => getUniqueTypes(state.pokemons), [state.pokemons]);
 
   const onChange = useCallback(
-    (newValue: string | null, input: string) => {
+    (newValue: string | null, input: "phrase" | "type") => {
       dispatch((prev: State) => {
         return {
           ...prev,
           [input]: newValue,
-        };
-      });
-      dispatch((prev: State) => {
-        return {
-          ...prev,
           displayLimit: 20,
         };
       });

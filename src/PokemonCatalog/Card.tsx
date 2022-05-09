@@ -3,6 +3,7 @@ import { Box, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { KeyboardArrowDown } from "@mui/icons-material";
 
 import { useStyles } from "./useStyles";
+import { useCardStyles } from "./Card.styles";
 import { Pokemon } from "./types";
 import { getTypeLabel } from "./utils";
 
@@ -12,7 +13,12 @@ interface CardProps {
 
 export const Card = ({ pokemon }: CardProps) => {
   const classes = useStyles();
+
   const [open, setOpen] = useState<boolean>(false);
+
+  const cardClasses = useCardStyles({
+    open,
+  });
 
   useEffect(() => {
     setOpen(false);
@@ -24,12 +30,7 @@ export const Card = ({ pokemon }: CardProps) => {
   ];
 
   return (
-    <Box
-      sx={{
-        bgcolor: open ? "rgba(71, 98, 130, 0.2)" : null,
-        pb: open ? 2 : 0,
-      }}
-    >
+    <Box className={cardClasses.box}>
       <ListItemButton
         alignItems="flex-start"
         onClick={() => setOpen(!open)}
