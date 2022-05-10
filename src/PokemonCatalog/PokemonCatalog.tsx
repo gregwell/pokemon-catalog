@@ -109,29 +109,31 @@ export default function PokemonCatalog() {
   };
 
   return (
-    <StyledContainer darkTheme={state.darkTheme}>
-      <TitleBar />
+    <>
+      <StyledContainer darkTheme={state.darkTheme}>
+        <TitleBar />
 
-      <FilterInputs
-        state={state}
-        dispatch={dispatch}
-        loadAll={loadAll}
-        isLoading={isLoading}
-      />
+        <FilterInputs
+          state={state}
+          dispatch={dispatch}
+          loadAll={loadAll}
+          isLoading={isLoading}
+        />
 
-      {showFilters && <Filters state={state} dispatch={dispatch} />}
+        {showFilters && <Filters state={state} dispatch={dispatch} />}
 
-      {pokemonsToDisplay.map((pokemon: Pokemon) => (
-        <Card key={pokemon.name} pokemon={pokemon} />
-      ))}
+        {pokemonsToDisplay.map((pokemon: Pokemon) => (
+          <Card key={pokemon.name} pokemon={pokemon} />
+        ))}
 
-      {showLoadMoreButton && (
-        <Button onClick={loadMore}>{loadMoreButtonText}</Button>
-      )}
+        {showLoadMoreButton && (
+          <Button onClick={loadMore}>{loadMoreButtonText}</Button>
+        )}
 
-      {isLoading && <CircularProgress />}
+        {isLoading && <CircularProgress />}
+      </StyledContainer>
 
-      <button onClick={onSwitchTheme}>change theme</button>
-    </StyledContainer>
+      <button onClick={onSwitchTheme}>change theme temporary button</button>
+    </>
   );
 }

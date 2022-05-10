@@ -26,8 +26,8 @@ export const StyledContainer = ({ children, darkTheme }: StyledContainerProps) =
     },
     palette: {
       mode: "dark",
-      primary: { main: darkTheme ? "#242eb6" : "#4a4b5b" },
-      background: { paper: darkTheme? "#4eef00" : "#de520a"},
+      primary: { main: darkTheme ? "rgb(102, 157, 246)" : "#4a4b5b" },
+      background: { paper: darkTheme? "rgb(5, 30, 52)" : "#de520a"},
     },
   });
 
